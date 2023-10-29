@@ -105,7 +105,7 @@ def add(a: int, b: int) -> int:
 
 Встановіть наступні розширення:
 
-1. [isort](https://marketplace.visualstudio.com/items?itemName=ms-python.isort)8
+1. [isort](https://marketplace.visualstudio.com/items?itemName=ms-python.isort)
 2. [black-formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter&ssr=false#review-details)
 3. [flake8](https://marketplace.visualstudio.com/items?itemName=ms-python.flake8)
 
