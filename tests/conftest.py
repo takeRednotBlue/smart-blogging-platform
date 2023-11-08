@@ -17,10 +17,13 @@ TestingSessionLocal = sessionmaker(
 )
 
 
-@pytest.fixture(scope="module")
-def session():
-    # Create the database
+def base_session():
+    """Base generator to be used in creating fixtures for pytest
+    and for setUp in unittest TesCase classes
 
+    :yield: Session object for db connection
+    :rtype: Generator[Session, Any, None]
+    """
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
@@ -29,6 +32,12 @@ def session():
         yield db
     finally:
         db.close()
+
+
+@pytest.fixture(scope="module")
+def session():
+    # Create the database for pytest tests
+    yield next(base_session())
 
 
 @pytest.fixture(scope="module")
