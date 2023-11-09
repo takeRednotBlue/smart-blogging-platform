@@ -26,6 +26,7 @@ cloudinary = "^1.36.0"
 pydantic-settings = "^2.0.3"
 fastapi-jwt-auth = "^0.5.0"
 sqlalchemy = "^2.0.22"
+asyncpg = "^0.28.0"
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^7.2.6"
