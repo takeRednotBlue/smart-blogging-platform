@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     cloudinary_api_key: str
     cloudinary_api_secret: str
     cloudinary_url: str
+    openai_api_key: str
 
     model_config = ConfigDict(
         env_file=".env",
