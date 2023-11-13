@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     # mail_port: int
     # mail_server: str
     # mail_from_name: str
-    redis_host: str = 'localhost'
+    redis_host: str = "localhost"
     redis_port: int = 6379
     # cloudinary_name: str
     # cloudinary_api_key: str
@@ -20,9 +20,7 @@ class Settings(BaseSettings):
     # cloudinary_url: str
 
     model_config = ConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra='ignore'
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
 
