@@ -1,8 +1,15 @@
+from logging.config import dictConfig
+
 from fastapi import FastAPI
-from src.api import tags
+
+from src.api.router import router
+from src.log_config import LogConfig
+
+dictConfig(LogConfig().model_dump())
 
 app = FastAPI()
-app.include_router(tags.router, prefix='/api')
+
+app.include_router(router, prefix="/api")
 
 
 @app.get("/")

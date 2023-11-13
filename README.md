@@ -43,7 +43,7 @@ DATABASE_URL = settings.sqlalchemy_database_url
 
 В `src.database.db` є функція `create_db_and_tables` яка при виклику заселяє базу відповідно до визначени моделей.
 
-> Застосунок працю з БД асинхронно тому використовуємо замість:
+> Застосунок працює з БД асинхронно тому використовуємо замість:
 > - `Session` -> `AsyncSession`
 > - `get_db` -> `get_async_db`
 
@@ -83,6 +83,8 @@ DATABASE_URL = settings.sqlalchemy_database_url
 Документуємо функції та класи у docstring у стилі Google за допомогою `sphinx`
 
 [Trelent](https://marketplace.visualstudio.com/items?itemName=Trelent.trelent) - АІ помічник (розширення) для створення __docstring__.
+
+> На початку __docstring__ ставте `\f` щоб вона не відображалсь в документації
 
 Приклад:
 
