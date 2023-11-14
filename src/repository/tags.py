@@ -73,13 +73,15 @@ async def update_tag(tagname: str, body: TagModel, db: AsyncSession) ->Tag:
     - `Tag`: The updated tag.
     
     """
-    tag = (await db.execute(select(Tag).where(Tag.name == tagname))).scalars(
-        ).first()
+    tag = (await db.execute(select(Tag).where(Tag.name == tagname))).scalars().first()
+
     if not tag:
         return None
     tag.name = body.name
     await db.commit()
+    await db.refresh(tag)
     return tag
+    
 
 
 async def remove_tag(tagname: str, db: AsyncSession) ->Tag:

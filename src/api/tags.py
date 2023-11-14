@@ -7,11 +7,13 @@ from src.database.models.tags import Tag
 from src.database.models.users import User
 from src.schemas.tags import TagModel, TagResponse
 from src.services.auth import auth_service
+
+
 router = APIRouter(prefix='/tags', tags=['tags'])
 async_db = Annotated[AsyncSession, Depends(get_async_db)]
 
 
-@router.get('/', response_model=List[TagResponse])
+@router.get('', response_model=List[TagResponse])
 async def read_tags(db: async_db, current_user: User=Depends(auth_service.
     get_current_user)) ->List[TagResponse]:
     """
@@ -32,7 +34,7 @@ async def read_tags(db: async_db, current_user: User=Depends(auth_service.
     return await repository_tags.get_tags(db)
 
 
-@router.post('/', response_model=TagModel, status_code=status.HTTP_201_CREATED)
+@router.post('', response_model=TagResponse, status_code=status.HTTP_201_CREATED)
 async def create_tag(body: TagModel, db: async_db, current_user: User=
     Depends(auth_service.get_current_user)) ->Tag:
     """
@@ -63,7 +65,7 @@ async def create_tag(body: TagModel, db: async_db, current_user: User=
 @router.get('/{tagname}', response_model=TagResponse)
 async def read_tag(db: async_db, tagname: str=Path(description=
     'The name of the tag to get'), current_user: User=Depends(auth_service.
-    get_current_user)) ->Tag:
+    get_current_user)) -> Tag:
     """
     ### Description
     This function is a GET endpoint that retrieves a tag by its name.
@@ -93,7 +95,7 @@ async def read_tag(db: async_db, tagname: str=Path(description=
 @router.put('/{tagname}', response_model=TagResponse)
 async def update_tag(body: TagModel, db: async_db, tagname: str=Path(
     description='The name of the tag to put'), current_user: User=Depends(
-    auth_service.get_current_user)) ->Tag:
+    auth_service.get_current_user)) -> Tag:
     """
     ### Description
     Updates a tag with the given name.
