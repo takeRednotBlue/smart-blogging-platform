@@ -42,6 +42,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def create_post(body: PostCreate, db: AsyncSession) -> Post:
+    tag = Tag(name="test")
+    db.add(tag)
+    await db.commit()
     stmt = select(Tag).where(Tag.id.in_(body.tags))
     result = await db.execute(stmt)
     tags = result.scalars().all()
