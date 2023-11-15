@@ -1,12 +1,13 @@
+import redis.asyncio as redis
 from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
-import redis.asyncio as redis
 
 from src.api import comments
-from src.database.db import create_db_and_tables
 from src.conf.config import settings
+from src.database.db import create_db_and_tables
 
 app = FastAPI()
+
 
 @app.on_event("startup")
 async def startup():
@@ -19,6 +20,7 @@ async def startup():
     )
     await FastAPILimiter.init(r)
 
+
 @app.get("/")
 def root():
     return {"message": "Smart Blogging Platform API"}
@@ -26,10 +28,3 @@ def root():
 
 app.include_router(comments.router, prefix="/api")
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app="main:app", reload=True)
-
-    # import asyncio
-    # asyncio.run(create_db_and_tables())
