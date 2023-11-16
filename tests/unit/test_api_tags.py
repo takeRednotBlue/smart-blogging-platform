@@ -6,13 +6,6 @@ from sqlalchemy import select
 from src.database.models.users import User
 from src.services.auth import auth_service
 from src.schemas.tags import TagModel
-from src.repository.tags import (
-    get_tags,
-    create_tag,
-    get_tag,
-    update_tag,
-    remove_tag
-)
 
 
 @pytest.fixture(scope="module")
@@ -27,7 +20,6 @@ async def token(client, user, session, monkeypatch):
     mock_send_email = MagicMock()
     monkeypatch.setattr("src.services.email.send_email", mock_send_email)
     await client.post("/api/v1/auth/signup", json=user)
-    # current_user: User = session.query(User).filter(User.email == user.get('email')).first()
     current_user: User = (await session.execute(select(User).where(User.email == user.get('email')))).scalar_one_or_none()
     current_user.confirmed = True
     session.commit()
@@ -44,7 +36,7 @@ async def test_create_tag(client, token):
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
         response = await client.post(
-            "/api/v1/tags",
+            "/api/v1/tags/",
             json={"name": "test_tag"},
             headers={"Authorization": f"Bearer {token}"}
         )
@@ -73,7 +65,7 @@ async def test_get_tags(client, token):
     with patch.object(auth_service, 'r') as r_mock:
         r_mock.get.return_value = None
         response = await client.get(
-            "/api/v1/tags",
+            "/api/v1/tags/",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200, response.text
