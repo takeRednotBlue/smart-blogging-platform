@@ -1,11 +1,11 @@
 import asyncio
 
-
 import pytest
 import pytest_asyncio
 import redis.asyncio as redis
 from fastapi_limiter.depends import FastAPILimiter
 from httpx import AsyncClient
+from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from main import app
@@ -41,6 +41,10 @@ async def session():
     async with db as session:
         yield session
 
+
+@pytest.fixture(scope="module")
+def sync_client():
+    return TestClient(app)
 
 @pytest_asyncio.fixture(scope="module")
 async def client(session):
