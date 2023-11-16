@@ -1,7 +1,5 @@
 import pytest
 from src.services.autocomplete import list_suggestions, exmple_list_autocoplete
-from fastapi.testclient import TestClient
-import main
 
 
 def test_list_suggestions():
@@ -34,14 +32,9 @@ def test_exmple_list_autocoplete():
     assert suggestions == []
 
 
-@pytest.fixture
-def client():
-    return TestClient(main.app)
-
-
-def test_autocomplete_fruits(client):
+def test_autocomplete_fruits(sync_client):
     query_param = "app"
-    response = client.get(
+    response = sync_client.get(
         "/api/v1/autocomplete/fruits", params={"query_param": query_param}
     )
     assert response.status_code == 200
@@ -50,9 +43,9 @@ def test_autocomplete_fruits(client):
     assert isinstance(data["suggestions"], list)
 
 
-def test_autocomplete_text(client):
+def test_autocomplete_text(sync_client):
     query_param = "I want to say th"
-    response = client.get("/api/v1/autocomplete", params={"query_param": query_param})
+    response = sync_client.get("/api/v1/autocomplete", params={"query_param": query_param})
     assert response.status_code == 200
     data = response.json()
     assert "suggestion" in data
