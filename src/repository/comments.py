@@ -6,8 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from src.database.models.comments import Comment
-from src.database.models.post import Post
-from src.database.models.user import User
 from src.schemas.comments import CommentBase
 
 
@@ -34,28 +32,23 @@ async def create_comment(
         await db.commit()
         await db.refresh(comment)
         return comment
+    return None
 
 
 async def read_post_comment(post_id: int, db: AsyncSession) -> List[Comment]:
     """Retrieves the comments for a given post from the database.
 
-    :param post_id: The ID of the post.
-    :type post_id: int
     :param db: The database session.
     :type db: AsyncSession
     :return: A list of Comment objects associated with the post.
     :rtype: List[Comment]
-    :raises HTTPException: If the post is not found in the database."""
-    post = await db.execute(select(Post).where(Post.id == post_id))
-    post = post.scalar()
-    if post:
-        comments = await db.execute(select(Comment).where(Comment.post_id == post_id))
-        return comments.scalars().all()
-    raise HTTPException(404, detail="Post not found")
+    """
+    comments = await db.execute(select(Comment).where(Comment.post_id == post_id))
+    return comments.scalars().all()
 
 
 async def update_comment(
-    body: CommentBase, post_id: int, comment_id: int, user: User, db: AsyncSession
+    body: CommentBase, comment_id: int, user: User, db: AsyncSession
 ) -> Comment:
     """Updates a comment in the database.
 
@@ -74,8 +67,6 @@ async def update_comment(
     :raises HTTPException 404: If the comment is not found.
     :raises HTTPException 403: If the user does not have permission to update the comment.
     """
-    post = await db.execute(select(Post).where(Post.id == post_id))
-    post = post.scalars().first()
     comment = await db.execute(select(Comment).where(Comment.id == comment_id))
     comment = comment.scalars().first()
     if not comment:
@@ -84,15 +75,15 @@ async def update_comment(
         raise HTTPException(
             403, detail="Permission denied: You can only update your own comments"
         )
-    if post:
-        await db.execute(
-            update(Comment)
-            .where(Comment.id == comment_id)
-            .values({"comment": body.comment, "updated_at": func.now()})
-        )
-        await db.commit()
-        await db.refresh(comment)
-        return comment
+
+    await db.execute(
+        update(Comment)
+        .where(Comment.id == comment_id)
+        .values({"comment": body.comment, "updated_at": func.now()})
+    )
+    await db.commit()
+    await db.refresh(comment)
+    return comment
 
 
 async def remove_comment(comment_id: int, db: AsyncSession) -> Comment:

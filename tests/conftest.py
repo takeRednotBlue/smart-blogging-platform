@@ -69,4 +69,3 @@ async def client(session):
 @pytest.fixture(scope="class")
 def user():
     return User(username="Test", email="test@example.com", password="test")
-

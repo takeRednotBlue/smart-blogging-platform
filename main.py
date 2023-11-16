@@ -27,4 +27,3 @@ def root():
 
 
 app.include_router(comments.router, prefix="/api")
-

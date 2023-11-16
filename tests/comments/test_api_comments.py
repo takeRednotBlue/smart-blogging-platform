@@ -3,10 +3,6 @@ import pytest
 
 @pytest.mark.asyncio
 class TestComments:
-    async def test_create_post(self, client):
-        response = await client.post("/api/posts/")
-        assert response.status_code == 201
-
     async def test_create_comment(self, client):
         response = await client.post(
             "/api/posts/1/comments",

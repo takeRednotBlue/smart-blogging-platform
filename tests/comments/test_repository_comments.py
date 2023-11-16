@@ -1,23 +1,21 @@
 import pytest
 
-from src.repository.comments import (create_comment, create_post,
-                                     read_post_comment, remove_comment,
-                                     update_comment)
+from src.repository.comments import (
+    create_comment,
+    read_post_comment,
+    remove_comment,
+    update_comment,
+)
 from src.schemas.comments import CommentBase
 
 
 @pytest.mark.asyncio
 class TestCommentRepository:
-    async def test_create_post(self, session):
-        post = await create_post(session)
-        assert post.id is not None
-        assert post.id > 0
-
     async def test_create_comment(self, session, user):
         comment_data = {"comment": "Test comment"}
         body = CommentBase(**comment_data)
         comment = await create_comment(body, 1, user, session)
-        assert comment.id is not None
+        assert comment.id
         assert comment.id > 0
         assert comment.comment == "Test comment"
         assert comment.user_id == user.id
@@ -31,7 +29,7 @@ class TestCommentRepository:
     async def test_update_comment(self, session, user):
         comment_data = {"comment": "Update test comment"}
         body = CommentBase(**comment_data)
-        updated_comment = await update_comment(body, 1, 1, user, session)
+        updated_comment = await update_comment(body, 1, user, session)
         assert updated_comment.id > 0
         assert updated_comment.comment == "Update test comment"
         assert updated_comment.user_id == user.id

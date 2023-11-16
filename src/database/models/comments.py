@@ -14,7 +14,5 @@ class Comment(Base):
     updated_at = Column(DateTime, default=None)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"))
     post = relationship("Post", backref="comments")
-    user_id = Column(
-        "users_id", ForeignKey("users.id", ondelete="CASCADE"), default=None
-    )
+    user_id = Column("users_id", ForeignKey("users.id"))
     user = relationship("User", backref="comments")

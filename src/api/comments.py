@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.repository.comments as repository_comments
 from src.database.db import get_async_db
 from src.database.models.comments import Comment
-from src.database.models.user import User
 from src.schemas.comments import CommentBase, CommentResponse
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -81,7 +80,7 @@ async def read_post_comments(post_id: int, db: AsyncSession = Depends(get_async_
     comments = await repository_comments.read_post_comment(post_id, db)
     if comments:
         return comments
-    raise HTTPException(404, detail="Comments not exist")
+    raise HTTPException(404, detail="Comments not found")
 
 
 @router.put(
@@ -90,7 +89,6 @@ async def read_post_comments(post_id: int, db: AsyncSession = Depends(get_async_
     response_model=CommentResponse,
 )
 async def update_comment(
-    post_id: int,
     comment_id: int,
     body: CommentBase,
     db: AsyncSession = Depends(get_async_db),
@@ -109,7 +107,6 @@ async def update_comment(
     - No more than 10 requests per minute.
 
     ### Query Parameters
-    - `post_id` (**int**, required): The ID of the post.
     - `comment_id` (**int**, required): The ID of the comment.
     - `body` (**CommentBase**, required): The updated comment data.
 
@@ -122,7 +119,7 @@ async def update_comment(
     ### Example
     - Update comment: [PUT] `/api/v1/posts/{post_id}/comments/{comment_id}`"""
     comment = await repository_comments.update_comment(
-        body, post_id, comment_id, current_user, db
+        body, comment_id, current_user, db
     )
     if not comment:
         raise HTTPException(404, detail="Post not found")
