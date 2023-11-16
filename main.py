@@ -1,10 +1,18 @@
+from logging.config import dictConfig
+
 from fastapi import FastAPI
 import uvicorn
 from src.database.db import create_db_and_tables
 import asyncio
 from src.api.router import router
 
+from src.api.router import router
+from src.log_config import LogConfig
+
+dictConfig(LogConfig().model_dump())
+
 app = FastAPI()
+app.include_router(router, prefix="/api")
 
 app.include_router(router, prefix="/api")
 
