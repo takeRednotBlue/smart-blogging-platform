@@ -168,3 +168,6 @@ secrets
 alembic.ini
 alembic
 migrations
+
+# Tests
+test.db 
