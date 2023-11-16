@@ -23,16 +23,7 @@ class Post(Base):
     title = Column(String)
     text = Column(String)
     created_at = Column(DateTime, default=datetime.now())
-    tags = relationship(
-        "Tag", secondary="posts_tags", back_populates="posts"
-    )  # ошибка начинаеться отсюда
-    # tags_id = Column(Integer, ForeignKey("tags.id"))
-    # user_id = Column(Integer, ForeignKey("users.id"))
-    # user = relationship("User", backref="posts")
-
-    # Указываем явно внешние ключи для отношения Post.comments
-    # comments = relationship("Comment", back_populates="post", foreign_keys="[Comment.post_id]")
-    # comments_id = Column(Integer, ForeignKey("comments.id"))
+    tags = relationship("Tag", secondary=posts_tags, backref="posts")
 
 
 class Tag(Base):
@@ -40,22 +31,22 @@ class Tag(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(25), nullable=False, unique=True)
-    posts = relationship("Post", secondary="posts_tags", back_populates="tags")
+    # posts = relationship("Post", secondary=posts_tags, back_populates="tags")
 
 
 class Comment(Base):
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True)
-    # post_id = Column(Integer, ForeignKey("posts.id"))
-    # post = relationship("Post", backref="comments")
+    comment = Column(String)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"))
+    post = relationship("Post", backref="comments")
 
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    # posts = relationship("Post", backref="user")
 
 
 class Roles(enum.Enum):

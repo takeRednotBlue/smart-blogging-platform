@@ -14,8 +14,8 @@ def root():
     return {"message": "Smart Blogging Platform API"}
 
 
-async def startup_event():
-    await create_db_and_tables()
+# async def startup_event():
+#     await create_db_and_tables()
 
 
 # if __name__ == "__main__":

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncAttrs,
 )
 from sqlalchemy.orm import DeclarativeBase
+import asyncio
 
 
 from src.conf.config import settings
@@ -32,3 +33,7 @@ async def create_db_and_tables():
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
+
+
+loop = asyncio.get_running_loop()
+asyncio.run_coroutine_threadsafe(create_db_and_tables(), loop)

@@ -1,7 +1,18 @@
-from pydantic import BaseModel, Field
-from datetime import date
-from typing import Optional, List
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, List, ClassVar
 from datetime import datetime
+
+
+class CommentBase(BaseModel):
+    comment: str = Field(max_length=280)
+    post_id: ClassVar[int]
+
+
+class CommentsResponse(CommentBase):
+    id: int
+    post_id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TagModel(BaseModel):
@@ -10,6 +21,7 @@ class TagModel(BaseModel):
 
 class TagResponse(TagModel):
     id: int
+    name: str
 
     class Config:
         from_attributes = True
@@ -18,13 +30,19 @@ class TagResponse(TagModel):
 class PostModel(BaseModel):
     title: str
     text: str
-    tags: Optional[List[int]]
+    tags: Optional[List[str]]
 
 
 class PostCreate(PostModel):
     title: str
     text: str
-    tags: Optional[List[int]]
+    tags: Optional[List[str]]
+
+
+class PostUpdate(BaseModel):
+    title: Optional[str]
+    text: Optional[str]
+    tags: Optional[List[str]]
 
 
 class PostResponse(PostModel):
@@ -36,21 +54,11 @@ class PostResponse(PostModel):
         from_attributes = True
 
 
-# class PostModel(BaseModel):
-#     title: str
-#     text: str
-#     created_at: date
-#     tags: Optional[List[str]] = Field(default_factory=list, max_items=5)
-#     # user_id: int
-
-
-class ResponsePost(BaseModel):
+class PostResponseOne(PostModel):
     id: int
-    title: str
-    text: str
-    created_at: date
-    tags: Optional[List[str]] = Field(default_factory=list, max_items=5)
-    user_id: int
+    created_at: datetime
+    tags: List[TagResponse]
+    comments: List[CommentsResponse]
 
     class Config:
         from_attributes = True
