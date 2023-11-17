@@ -30,7 +30,7 @@ class TagResponse(TagModel):
 class PostModel(BaseModel):
     title: str
     text: str
-    tags: Optional[List[str]]
+    tags: Optional[List[str]] = Field(max_items=5)
 
 
 class PostCreate(PostModel):
