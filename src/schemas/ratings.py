@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from src.database.models.rating import RatingEstimate
+from src.database.models.rating import RatingTypes
 from src.schemas.users import UserResponse
 
 
@@ -10,7 +10,7 @@ class RatingModel(BaseModel):
 
 class RatingResponse(BaseModel):
     id: int
-    type: RatingEstimate
+    type: RatingTypes
     post_id: int
     user_id: int 
 
@@ -19,7 +19,7 @@ class RatingResponse(BaseModel):
 
 class PostRatingResponse(BaseModel):
     id: int
-    type: RatingEstimate
+    type: RatingTypes
     user_id: int 
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
@@ -27,7 +27,7 @@ class PostRatingResponse(BaseModel):
 
 class UserRatingResponse(BaseModel):
     id: int
-    type: RatingEstimate
+    type: RatingTypes
     post_id: int 
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
