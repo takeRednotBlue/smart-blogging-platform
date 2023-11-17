@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from src.database.models.comments import Comment
+from src.database.models.posts import Post  # noqa
+from src.database.models.users import User
 from src.schemas.comments import CommentBase
 
 
@@ -27,7 +29,9 @@ async def create_comment(
     post = await db.execute(select(Post).where(Post.id == post_id))
     post = post.scalars().first()
     if post:
-        comment = Comment(**body.model_dump(), user_id=user.id, post_id=post.id)
+        comment = Comment(
+            **body.model_dump(), user_id=user.id, post_id=post.id
+        )
         db.add(comment)
         await db.commit()
         await db.refresh(comment)
@@ -43,7 +47,9 @@ async def read_post_comment(post_id: int, db: AsyncSession) -> List[Comment]:
     :return: A list of Comment objects associated with the post.
     :rtype: List[Comment]
     """
-    comments = await db.execute(select(Comment).where(Comment.post_id == post_id))
+    comments = await db.execute(
+        select(Comment).where(Comment.post_id == post_id)
+    )
     return comments.scalars().all()
 
 
@@ -73,7 +79,8 @@ async def update_comment(
         raise HTTPException(404, detail="Comment not found")
     if comment.user_id != user.id:
         raise HTTPException(
-            403, detail="Permission denied: You can only update your own comments"
+            403,
+            detail="Permission denied: You can only update your own comments",
         )
 
     await db.execute(
@@ -95,7 +102,9 @@ async def remove_comment(comment_id: int, db: AsyncSession) -> Comment:
     :type db: AsyncSession
     :return: The removed comment, or None if the comment does not exist.
     :rtype: Comment"""
-    removed_comment = await db.execute(select(Comment).where(Comment.id == comment_id))
+    removed_comment = await db.execute(
+        select(Comment).where(Comment.id == comment_id)
+    )
     removed_comment = removed_comment.scalar()
     if removed_comment:
         await db.delete(removed_comment)

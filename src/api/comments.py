@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi_limiter.depends import RateLimiter
@@ -6,9 +8,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import src.repository.comments as repository_comments
 from src.database.db import get_async_db
 from src.database.models.comments import Comment
+from src.database.models.users import User
 from src.schemas.comments import CommentBase, CommentResponse
+from src.services.auth import auth_service
 
 router = APIRouter(prefix="/posts", tags=["posts"])
+
+# Dependencies
+get_current_user = Annotated[User, Depends(auth_service.get_current_user)]
+async_db = Annotated[AsyncSession, Depends(get_async_db)]
 
 
 @router.post(
@@ -18,7 +26,10 @@ router = APIRouter(prefix="/posts", tags=["posts"])
     status_code=status.HTTP_201_CREATED,
 )
 async def create_comment(
-    post_id: int, body: CommentBase, db: AsyncSession = Depends(get_async_db)
+    post_id: int,
+    body: CommentBase,
+    current_user: get_current_user,
+    db: async_db,
 ) -> Comment:
     """# Create Comment
 
@@ -45,14 +56,16 @@ async def create_comment(
 
     ### Example
     - Create a comment: [POST] `/api/v1/contacts/{post_id}/comments`"""
-    comment = await repository_comments.create_comment(body, post_id, current_user, db)
+    comment = await repository_comments.create_comment(
+        body, post_id, current_user, db
+    )
     if comment:
         return comment
     raise HTTPException(404, detail="Post not found")
 
 
 @router.get("/{post_id}/comments", response_model=list[CommentResponse])
-async def read_post_comments(post_id: int, db: AsyncSession = Depends(get_async_db)):
+async def read_post_comments(post_id: int, db: async_db):
     """# Read Post Comments
 
     ### Description
@@ -76,7 +89,8 @@ async def read_post_comments(post_id: int, db: AsyncSession = Depends(get_async_
     - `HTTPException(404)`: If the comments for the post do not exist.
 
     ### Example
-    - Retrieve comments for post with ID 123: [GET] `/api/v1/posts/123/comments`"""
+    - Retrieve comments for post with ID 123: [GET] `/api/v1/posts/123/comments`
+    """
     comments = await repository_comments.read_post_comment(post_id, db)
     if comments:
         return comments
@@ -91,7 +105,8 @@ async def read_post_comments(post_id: int, db: AsyncSession = Depends(get_async_
 async def update_comment(
     comment_id: int,
     body: CommentBase,
-    db: AsyncSession = Depends(get_async_db),
+    current_user: get_current_user,
+    db: async_db,
 ) -> Comment:
     """# Update Comment
 
@@ -126,10 +141,10 @@ async def update_comment(
     return comment
 
 
-@router.delete("/{post_id}/comments/{comment_id}", response_model=CommentResponse)
-async def remove_comment(
-    comment_id: int, db: AsyncSession = Depends(get_async_db)
-) -> Comment:
+@router.delete(
+    "/{post_id}/comments/{comment_id}", response_model=CommentResponse
+)
+async def remove_comment(comment_id: int, db: async_db) -> Comment:
     """# Remove Comment
 
     ### Description
@@ -153,7 +168,8 @@ async def remove_comment(
     - `HTTPException 404`: Raised if the comment is not found.
 
     ### Example
-    - Remove a comment: [DELETE] `/api/v1/contacts/{post_id}/comments/{comment_id}`"""
+    - Remove a comment: [DELETE] `/api/v1/contacts/{post_id}/comments/{comment_id}`
+    """
     deleted_comment = await repository_comments.remove_comment(comment_id, db)
     if deleted_comment:
         return JSONResponse(
