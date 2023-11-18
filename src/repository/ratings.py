@@ -79,7 +79,9 @@ async def get_post_by_id(db: AsyncSession, post_id: int) -> (Post | None):
     :type post_id: int
     :return: The post with the given ID, or None if no post is found.
     :rtype: Post | None"""
-    return (await db.execute(select(Post).where(Post.id == post_id))
+    print((await db.execute(select(Post).where(Post.id == int(post_id)))
+        ).scalar_one_or_none())
+    return (await db.execute(select(Post).where(Post.id == int(post_id)))
         ).scalar_one_or_none()
 
 

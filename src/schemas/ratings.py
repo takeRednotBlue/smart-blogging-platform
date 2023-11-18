@@ -32,4 +32,8 @@ class UserRatingResponse(BaseModel):
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
 
-  
+#   # Delete this scheme
+class PostModel(BaseModel):
+    user_id: int 
+
+    model_config: ConfigDict = ConfigDict(from_attributes=True)
