@@ -2,12 +2,8 @@ import pytest
 from sqlalchemy import select
 
 from src.database.models.users import User
-from src.repository.users import (
-    confirmed_email,
-    create_user,
-    get_user_by_email,
-    update_token,
-)
+from src.repository.users import (confirmed_email, create_user,
+                                  get_user_by_email, update_token)
 
 
 @pytest.mark.asyncio
@@ -37,9 +33,7 @@ class TestRepositoryUsers:
     async def test_update_token(self, user_model, session):
         test_token = "test"
         user = (
-            await session.execute(
-                select(User).where(User.email == user_model.email)
-            )
+            await session.execute(select(User).where(User.email == user_model.email))
         ).scalar_one_or_none()
         await update_token(user, test_token, session)
         await session.refresh(user)
@@ -47,9 +41,7 @@ class TestRepositoryUsers:
 
     async def test_confirmed_email(self, user_model, session):
         user = (
-            await session.execute(
-                select(User).where(User.email == user_model.email)
-            )
+            await session.execute(select(User).where(User.email == user_model.email))
         ).scalar_one_or_none()
         await confirmed_email(user.email, session)
         await session.refresh(user)

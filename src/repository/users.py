@@ -19,9 +19,7 @@ async def create_user(body: UserModel, db: AsyncSession) -> User:
     return new_user
 
 
-async def update_token(
-    user: User, refresh_token: str, db: AsyncSession
-) -> None:
+async def update_token(user: User, refresh_token: str, db: AsyncSession) -> None:
     user.refresh_token = refresh_token
     db.add(user)
     await db.commit()

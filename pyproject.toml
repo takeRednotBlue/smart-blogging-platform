@@ -27,10 +27,13 @@ sqlalchemy = "^2.0.22"
 easy-open-ai = "^0.1.8"
 psycopg = "^3.1.12"
 greenlet = "^3.0.1"
+asyncpg = "^0.29.0"
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^7.2.6"
 pytest-cov = "^4.1.0"
+black = "^23.11.0"
+isort = "^5.12.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.3"
