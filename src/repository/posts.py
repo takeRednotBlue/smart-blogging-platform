@@ -17,10 +17,11 @@ async def get_or_create_tag(tag_name: str, db: AsyncSession):
     :type db: AsyncSession
     :return: The created or retrieved tag.
     :rtype: Tag"""
-    tag = (await db.execute(select(Tag).where(Tag.name == tag_name))).scalar_one_or_none()
+    tag = (
+        await db.execute(select(Tag).where(Tag.name == tag_name))
+    ).scalar_one_or_none()
     if not tag:
         tag = Tag(name=tag_name)
-        print(tag)
         db.add(tag)
         await db.commit()
         await db.refresh(tag)
@@ -47,7 +48,9 @@ async def create_post(body: PostCreate, user: User, db: AsyncSession) -> Post:
     return post
 
 
-async def update_post(post_id: int, user: User, body: PostUpdate, db: AsyncSession):
+async def update_post(
+    post_id: int, user: User, body: PostUpdate, db: AsyncSession
+):
     """Updates a post with the given post ID, user, body, and database session.
 
     :param post_id: The ID of the post to update.
@@ -91,7 +94,9 @@ async def remove_post(post_id: int, user: User, db: AsyncSession):
     :type db: AsyncSession
     :return: The removed post if it exists and the user has permission to remove it, otherwise None.
     :rtype: Post or None"""
-    post = select(Post).where(and_(Post.id == post_id, Post.user_id == user.id))
+    post = select(Post).where(
+        and_(Post.id == post_id, Post.user_id == user.id)
+    )
     post = await db.execute(post)
     post_result = post.scalars().first()
     if post_result and post_result.user_id == user.id:

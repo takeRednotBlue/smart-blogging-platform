@@ -1,4 +1,5 @@
 import pytest
+import pytest_asyncio
 
 from src.repository.comments import (
     create_comment,
@@ -11,6 +12,14 @@ from src.schemas.comments import CommentBase
 
 @pytest.mark.asyncio
 class TestCommentRepository:
+    @pytest_asyncio.fixture(scope="module", autouse=True)
+    async def create_post(self, client, token):
+        await client.post(
+            "/api/v1/posts/",
+            json={"title": "test", "text": "test", "tags": ["tag1", "tag2"]},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
     async def test_create_comment(self, session, db_user):
         comment_data = {"comment": "Test comment"}
         body = CommentBase(**comment_data)

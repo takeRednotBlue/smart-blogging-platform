@@ -1,18 +1,20 @@
 import asyncio
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytest_asyncio
 import redis.asyncio as redis
+from fastapi.testclient import TestClient
 from fastapi_limiter.depends import FastAPILimiter
 from httpx import AsyncClient
-from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from main import app
-from src.database.db import Base, get_async_db
-from src.schemas.users import UserModel
 from src.conf.config import settings
-from src.database.models.user import User
+from src.database.db import Base, get_async_db
+from src.database.models.users import User
+from src.schemas.users import UserModel
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -20,7 +22,7 @@ engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 AsyncTestingSessionLocal = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
+    autocommit=False, autoflush=False, bind=engine, expire_on_commit=False
 )
 
 
@@ -29,7 +31,6 @@ def event_loop():
     loop = asyncio.get_event_loop()
     yield loop
     loop.close()
-
 
 
 @pytest_asyncio.fixture(scope="module")
@@ -46,6 +47,7 @@ async def session():
 @pytest.fixture(scope="module")
 def sync_client():
     return TestClient(app)
+
 
 @pytest_asyncio.fixture(scope="module")
 async def client(session):
@@ -67,25 +69,37 @@ async def client(session):
         )
         await FastAPILimiter.init(r)
 
-
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        r = await redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=0,
-            encoding="utf-8",
-            decode_responses=True,
-        )
-        await FastAPILimiter.init(r)
-        
         yield client
 
 
-@pytest.fixture(scope="class")
+@pytest_asyncio.fixture(scope="module")
+async def token(client, user, session):
+    with patch("src.api.auth.send_email", MagicMock()):
+        await client.post("/api/v1/auth/signup", json=user)
+        current_user: User = (
+            await session.execute(
+                select(User).where(User.email == user.get("email"))
+            )
+        ).scalar_one_or_none()
+        current_user.confirmed = True
+        session.commit()
+        response = await client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": user.get("email"),
+                "password": user.get("password"),
+            },
+        )
+        data = response.json()
+        return data["access_token"]
+
+
+@pytest.fixture(scope="module")
 def db_user():
     return User(username="Test", email="test@example.com", password="test")
 
-@pytest.fixture(scope="class")
+
+@pytest.fixture(scope="module")
 def user():
     return {
         "username": "deadpool",

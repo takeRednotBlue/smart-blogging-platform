@@ -19,7 +19,7 @@ engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
-class Base(AsyncAttrs, DeclarativeBase):
+class Base(DeclarativeBase):
     pass
 
 
@@ -35,5 +35,5 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-loop = asyncio.get_running_loop()
-asyncio.run_coroutine_threadsafe(create_db_and_tables(), loop)
+# loop = asyncio.get_running_loop()
+# asyncio.run_coroutine_threadsafe(create_db_and_tables(), loop)
