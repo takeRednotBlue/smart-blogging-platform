@@ -175,4 +175,4 @@ test.db
 # .gitignore
 
 # Ignore the file named "example.txt"
-DS.Store
+.DS_Store
