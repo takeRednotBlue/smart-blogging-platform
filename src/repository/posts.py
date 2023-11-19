@@ -1,12 +1,11 @@
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
 from src.database.models.posts import Post
 from src.database.models.tags import Tag
 from src.database.models.users import User
-from sqlalchemy.orm import Session, selectinload
-from src.schemas.posts import PostModel, PostCreate, PostUpdate
-from sqlalchemy import select, and_
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.exceptions import HTTPException
-from typing import Optional
+from src.schemas.posts import PostCreate, PostUpdate
 
 
 async def get_or_create_tag(tag_name: str, db: AsyncSession):
@@ -59,16 +58,17 @@ async def update_post(post_id: int, user: User, body: PostUpdate, db: AsyncSessi
     :type body: PostUpdate
     :param db: The database session.
     :type db: AsyncSession
-    :return: The updated post.
-    :rtype: Post"""
-    statement = select(Post).where(Post.id == post_id).options(selectinload(Post.tags))
+    :return: The updated post if it exists and the user has permission to update it, otherwise None.
+    :rtype: Post or None"""
+    statement = (
+        select(Post)
+        .where(and_(Post.id == post_id, Post.user_id == user.id))
+        .options(selectinload(Post.tags))
+    )
     result_post = await db.execute(statement)
     post_f = result_post.scalar_one_or_none()
-    if post_f:
-        tag_ids = [int(tag_id) for tag_id in body.tags if tag_id.isdigit()]
-        stmt = select(Tag).where(Tag.id.in_(tag_ids))
-        result = await db.execute(stmt)
-        tags = result.scalars().all()
+    if post_f and post_f.user_id == user.id:
+        tags = [(await get_or_create_tag(tag, db)) for tag in body.tags]
         post_f.title = body.title
         post_f.text = body.text
         post_f.tags = tags
@@ -76,6 +76,8 @@ async def update_post(post_id: int, user: User, body: PostUpdate, db: AsyncSessi
         await db.commit()
         await db.refresh(post_f, ["tags"])
         return post_f
+    else:
+        return None
 
 
 async def remove_post(post_id: int, user: User, db: AsyncSession):
@@ -83,19 +85,21 @@ async def remove_post(post_id: int, user: User, db: AsyncSession):
 
     :param post_id: The ID of the post to be removed.
     :type post_id: int
-    :param user: The user who owns the post.
+    :param user: The user who is removing the post.
     :type user: User
     :param db: The database session.
     :type db: AsyncSession
-    :return: The removed post, if it exists. Otherwise, None.
+    :return: The removed post if it exists and the user has permission to remove it, otherwise None.
     :rtype: Post or None"""
-    post = select(Post).where(Post.id == post_id).where(Post.user_id == user.id)
+    post = select(Post).where(and_(Post.id == post_id, Post.user_id == user.id))
     post = await db.execute(post)
     post_result = post.scalars().first()
-    if post_result:
+    if post_result and post_result.user_id == user.id:
         await db.delete(post_result)
         await db.commit()
-    return post_result
+        return post_result
+    else:
+        return None
 
 
 async def get_posts(db: AsyncSession):

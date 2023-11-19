@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func, Table
+from sqlalchemy import Column, Integer, String, DateTime, Table
 from sqlalchemy.orm import relationship
 from src.database.db import Base
 from sqlalchemy.sql.schema import ForeignKey
@@ -22,5 +22,5 @@ class Post(Base):
     text = Column(String)
     created_at = Column(DateTime, default=datetime.now())
     tags = relationship("Tag", secondary=posts_tags, backref="posts")
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), default=None)
+    user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", backref="posts")

@@ -1,17 +1,22 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.schemas.posts import PostModel, PostResponse, PostResponseOne, PostUpdate
 from src.repository import posts as repository_posts
 from src.database.models.users import User
 from src.database.db import get_async_db
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth import auth_service
+from fastapi_limiter import FastAPILimiter
+
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
-@router.get("/", response_model=List[PostResponse])
+@router.get(
+    "/",
+    response_model=List[PostResponse],
+    dependencies=[Depends(FastAPILimiter(times=10, seconds=60))],
+)
 async def get_all_posts(db: AsyncSession = Depends(get_async_db)):
     """# Get All Posts
 
@@ -41,7 +46,11 @@ async def get_all_posts(db: AsyncSession = Depends(get_async_db)):
     return posts
 
 
-@router.get("/{post_id}", response_model=PostResponseOne)
+@router.get(
+    "/{post_id}",
+    response_model=PostResponseOne,
+    dependencies=[Depends(FastAPILimiter(times=10, seconds=60))],
+)
 async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
     """# Get Post
 
@@ -73,7 +82,12 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
     return post
 
 
-@router.post("/", response_model=PostResponse, tags=["posts"])
+@router.post(
+    "/",
+    response_model=PostResponse,
+    tags=["posts"],
+    dependencies=[Depends(FastAPILimiter(times=10, seconds=60))],
+)
 async def create_post(
     body: PostModel,
     db: AsyncSession = Depends(get_async_db),
@@ -108,7 +122,11 @@ async def create_post(
     return post
 
 
-@router.put("/{post_id}", response_model=PostResponse)
+@router.put(
+    "/{post_id}",
+    response_model=PostResponse,
+    dependencies=[Depends(FastAPILimiter(times=10, seconds=60))],
+)
 async def update_post(
     body: PostUpdate,
     post_id: int,
@@ -146,7 +164,11 @@ async def update_post(
     return post
 
 
-@router.delete("/{post_id}", response_model=PostResponse)
+@router.delete(
+    "/{post_id}",
+    response_model=PostResponse,
+    dependencies=[Depends(FastAPILimiter(times=10, seconds=60))],
+)
 async def delete_post(
     post_id: int,
     db: AsyncSession = Depends(get_async_db),
