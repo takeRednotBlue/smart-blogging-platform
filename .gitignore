@@ -171,3 +171,8 @@ migrations
 
 # Tests
 test.db 
+
+# .gitignore
+
+# Ignore the file named "example.txt"
+DS.Store
