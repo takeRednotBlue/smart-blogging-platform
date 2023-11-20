@@ -8,4 +8,3 @@ class Tag(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False, unique=True)
 
-
