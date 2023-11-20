@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy import select
 
 from src.database.models.users import User
-from src.database.models.rating import Post
+from src.database.models.posts import Post
 from src.services.auth import auth_service
 
 
@@ -28,7 +28,7 @@ async def token(client, user, session, monkeypatch):
 
 @pytest_asyncio.fixture
 async def create_post(session):
-    new_post = Post(user_id=1)
+    new_post = Post(user_id=1, title="test title", text="test_text")
     session.add(new_post)
     await session.commit()
     await session.refresh(new_post)

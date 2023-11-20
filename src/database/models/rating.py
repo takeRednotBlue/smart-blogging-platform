@@ -5,15 +5,7 @@ from sqlalchemy.sql.schema import ForeignKey
 
 from src.database.db import Base
 from src.database.models.users import User
-# import Post model
-
-
-# Delete this model
-class Post(Base):
-    __tablename__ = 'post'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"))
-
+from src.database.models.posts import Post
 
 
 class RatingTypes(enum.Enum):

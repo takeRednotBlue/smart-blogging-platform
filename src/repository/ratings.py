@@ -2,7 +2,7 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models.rating import Rating
-from src.database.models.rating import Post
+from src.database.models.posts import Post
 from src.schemas.ratings import RatingModel
 from src.database.models.users import User
 
