@@ -26,6 +26,6 @@ class Rating(Base):
     id = Column(Integer, primary_key=True)
     post_id = Column(Integer, ForeignKey(Post.id, ondelete="CASCADE"))
     user_id = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"))
-    type = Column(Enum(RatingTypes))
+    rating_type = Column(Enum(RatingTypes))
 
    

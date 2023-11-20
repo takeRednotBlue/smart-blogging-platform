@@ -4,13 +4,13 @@ from src.schemas.users import UserResponse
 
 
 class RatingModel(BaseModel):
-    type: str
+    rating_type: str
     user_id: int 
 
 
 class RatingResponse(BaseModel):
     id: int
-    type: RatingTypes
+    rating_type: RatingTypes
     post_id: int
     user_id: int 
 
@@ -19,7 +19,7 @@ class RatingResponse(BaseModel):
 
 class PostRatingResponse(BaseModel):
     id: int
-    type: RatingTypes
+    rating_type: RatingTypes
     user_id: int 
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
@@ -27,13 +27,9 @@ class PostRatingResponse(BaseModel):
 
 class UserRatingResponse(BaseModel):
     id: int
-    type: RatingTypes
+    rating_type: RatingTypes
     post_id: int 
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
 
-#   # Delete this scheme
-class PostModel(BaseModel):
-    user_id: int 
 
-    model_config: ConfigDict = ConfigDict(from_attributes=True)

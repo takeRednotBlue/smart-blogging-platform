@@ -17,9 +17,9 @@ async def get_rating_of_post(db: AsyncSession, post_id: int) -> int:
     :return: The rating of the post (number of likes minus number of dislikes).
     :rtype: int"""
     likes = len((await db.execute(select(Rating).where(Rating.post_id ==
-        int(post_id), Rating.type == 'LIKE'))).scalars().all())
+        int(post_id), Rating.rating_type == 'LIKE'))).scalars().all())
     dislikes = len((await db.execute(select(Rating).where(Rating.post_id ==
-        int(post_id), Rating.type == 'DISLIKE'))).scalars().all())
+        int(post_id), Rating.rating_type == 'DISLIKE'))).scalars().all())
     return likes - dislikes
 
 

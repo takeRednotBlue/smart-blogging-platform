@@ -8,8 +8,6 @@ from sqlalchemy import select
 from src.database.models.users import User
 from src.database.models.rating import Post
 from src.services.auth import auth_service
-from src.schemas.ratings import PostModel
-from src.schemas.users import UserModel
 
 
 @pytest_asyncio.fixture
@@ -62,7 +60,7 @@ async def test_create_rating(client, token, create_post, user2):
         response = await client.post(
             "/api/v1/post/1/ratings",
             json={
-                "type": "LIKE",
+                "rating_type": "LIKE",
                 "user_id": 2
                 },
             headers={"Authorization": f"Bearer {token}"}
@@ -79,7 +77,7 @@ async def test_create_rating_to_not_existing_post(client, token):
         response = await client.post(
             "/api/v1/post/2/ratings",
             json={
-                "type": "LIKE",
+                "rating_type": "LIKE",
                 "user_id": 1
                 },
             headers={"Authorization": f"Bearer {token}"}
@@ -94,7 +92,7 @@ async def test_create_rating_with_not_existing_user(client, token):
         response = await client.post(
             "/api/v1/post/1/ratings",
             json={
-                "type": "LIKE",
+                "rating_type": "LIKE",
                 "user_id": 4
                 },
             headers={"Authorization": f"Bearer {token}"}
@@ -109,7 +107,7 @@ async def test_create_rating_to_own_post(client, token):
         response = await client.post(
             "/api/v1/post/1/ratings",
             json={
-                "type": "LIKE",
+                "rating_type": "LIKE",
                 "user_id": 1
                 },
             headers={"Authorization": f"Bearer {token}"}
@@ -124,7 +122,7 @@ async def test_create_rating_to_already_estimated_post(client, token, user3):
         response = await client.post(
             "/api/v1/post/1/ratings",
             json={
-                "type": "LIKE",
+                "rating_type": "LIKE",
                 "user_id": 2
                 },
             headers={"Authorization": f"Bearer {token}"}
@@ -140,7 +138,7 @@ async def test_read_rating_of_post(client, token):
         await client.post(
             "/api/v1/post/1/ratings",
             json={
-                "type": "LIKE",
+                "rating_type": "LIKE",
                 "user_id": 3
                 },
             headers={"Authorization": f"Bearer {token}"}
@@ -167,7 +165,7 @@ async def test_read_ratings_of_post(client, token):
 
         assert response.status_code == 200, response.text
         data =  response.json()
-        assert data == [{'id': 1, 'type': 'LIKE', 'user_id': 2}, {'id': 2, 'type': 'LIKE', 'user_id': 3}]
+        assert data == [{'id': 1, 'rating_type': 'LIKE', 'user_id': 2}, {'id': 2, 'rating_type': 'LIKE', 'user_id': 3}]
 
 
 @pytest.mark.asyncio
@@ -195,7 +193,7 @@ async def test_read_ratings_of_user(client, token, create_post):
 
         assert response.status_code == 200, response.text
         data =  response.json()
-        assert data == [{'id': 2, 'type': 'LIKE', 'post_id': 1}]
+        assert data == [{'id': 2, 'rating_type': 'LIKE', 'post_id': 1}]
 
 
 @pytest.mark.asyncio
