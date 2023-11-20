@@ -1,3 +1,5 @@
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -172,7 +174,8 @@ migrations
 # Tests
 test.db 
 
-# .gitignore
+# Tests
+test.db 
 
 # Ignore the file named "example.txt"
 DS.Store
