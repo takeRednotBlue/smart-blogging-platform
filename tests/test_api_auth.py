@@ -41,9 +41,7 @@ class TestAPIAuth:
         assert data["detail"] == "Email not confirmed."
 
     async def test_login_user(self, client, session, user):
-        current_user: User = await get_user_by_email(
-            user.get("email"), session
-        )
+        current_user: User = await get_user_by_email(user.get("email"), session)
         current_user.confirmed = True
         response = await client.post(
             "api/v1/auth/login",
@@ -75,9 +73,7 @@ class TestAPIAuth:
         assert data["detail"] == "Invalid email."
 
     async def test_refresh_token(self, client, session, user):
-        current_user: User = await get_user_by_email(
-            user.get("email"), session
-        )
+        current_user: User = await get_user_by_email(user.get("email"), session)
         response = await client.get(
             "api/v1/auth/refresh_token",
             headers={"Authorization": f"Bearer {current_user.refresh_token}"},
@@ -101,9 +97,7 @@ class TestAPIAuth:
         data = response.json()
         assert data["detail"] == "Invalid refresh token."
 
-    async def test_confirmed_email_already_confirmed(
-        self, monkeypatch, client, user
-    ):
+    async def test_confirmed_email_already_confirmed(self, monkeypatch, client, user):
         token = "valid_token"
         monkeypatch.setattr(
             "src.services.auth.auth_service.get_email_from_token",
@@ -115,9 +109,7 @@ class TestAPIAuth:
         assert data["massage"] == "Your email is already confirmed."
 
     async def test_confirmed_email(self, monkeypatch, client, session, user):
-        current_user: User = await get_user_by_email(
-            user.get("email"), session
-        )
+        current_user: User = await get_user_by_email(user.get("email"), session)
         current_user.confirmed = False
         token = "valid_token"
         monkeypatch.setattr(
@@ -133,9 +125,7 @@ class TestAPIAuth:
         data = response.json()
         assert data["massage"] == "Your email has been confirmed."
 
-    async def test_confirmed_email_no_user(
-        self, monkeypatch, client, session, user
-    ):
+    async def test_confirmed_email_no_user(self, monkeypatch, client, session, user):
         token = "valid_token"
         monkeypatch.setattr(
             "src.services.auth.auth_service.get_email_from_token",
@@ -151,9 +141,7 @@ class TestAPIAuth:
         assert data["detail"] == "Verification error."
 
     async def test_request_email(self, monkeypatch, client, session, user):
-        current_user: User = await get_user_by_email(
-            user.get("email"), session
-        )
+        current_user: User = await get_user_by_email(user.get("email"), session)
         monkeypatch.setattr(
             "src.repository.users.get_user_by_email",
             AsyncMock(return_value=current_user),
@@ -170,9 +158,7 @@ class TestAPIAuth:
     async def test_request_email_already_confirmed(
         self, monkeypatch, client, session, user
     ):
-        current_user: User = await get_user_by_email(
-            user.get("email"), session
-        )
+        current_user: User = await get_user_by_email(user.get("email"), session)
         current_user.confirmed = False
         monkeypatch.setattr(
             "src.repository.users.get_user_by_email",
