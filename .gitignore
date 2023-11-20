@@ -1,3 +1,5 @@
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -168,3 +170,12 @@ secrets
 alembic.ini
 alembic
 migrations
+
+# Tests
+test.db 
+
+# Tests
+test.db 
+
+# Ignore the file named "example.txt"
+DS.Store

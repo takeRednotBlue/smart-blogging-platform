@@ -14,10 +14,11 @@ class Settings(BaseSettings):
     mail_from_name: str
     redis_host: str = "localhost"
     redis_port: int = 6379
-    # cloudinary_name: str
-    # cloudinary_api_key: str
-    # cloudinary_api_secret: str
-    # cloudinary_url: str
+    cloudinary_name: str
+    cloudinary_api_key: str
+    cloudinary_api_secret: str
+    cloudinary_url: str
+    openai_api_key: str
 
     model_config = ConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

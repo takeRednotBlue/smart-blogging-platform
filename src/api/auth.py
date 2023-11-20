@@ -11,8 +11,11 @@ from src.repository import users as repository_users
 from src.schemas.users import RequestEmail, TokenModel, UserModel, UserResponse
 from src.services.auth import auth_service
 from src.services.email import send_email
+from fastapi_limiter.depends import RateLimiter
 
-async_db = Annotated[AsyncSession, Depends(get_async_db)]
+RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
+AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 security = HTTPBearer()
@@ -27,7 +30,7 @@ async def signup(
     body: UserModel,
     request: Request,
     background_tasks: BackgroundTasks,
-    db: async_db,
+    db: AsyncDBSession,
 ):
     exist_user = await repository_users.get_user_by_email(body.email, db)
     if exist_user:
@@ -47,7 +50,9 @@ async def signup(
 
 
 @router.post("/login", response_model=TokenModel)
-async def login(db: async_db, body: OAuth2PasswordRequestForm = Depends()):
+async def login(
+    db: AsyncDBSession, body: OAuth2PasswordRequestForm = Depends()
+):
     user = await repository_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(
@@ -75,7 +80,7 @@ async def login(db: async_db, body: OAuth2PasswordRequestForm = Depends()):
 
 @router.get("/refresh_token", response_model=TokenModel)
 async def refresh_token(
-    db: async_db,
+    db: AsyncDBSession,
     credentials: HTTPAuthorizationCredentials = Security(security),
 ):
     token = credentials.credentials
@@ -98,7 +103,7 @@ async def refresh_token(
 
 
 @router.get("/confirmed_email/{token}")
-async def confirmed_email(token: str, db: async_db):
+async def confirmed_email(token: str, db: AsyncDBSession):
     email = await auth_service.get_email_from_token(token)
     user = await repository_users.get_user_by_email(email, db)
     if user is None:
@@ -117,7 +122,7 @@ async def request_email(
     body: RequestEmail,
     background_tasks: BackgroundTasks,
     request: Request,
-    db: async_db,
+    db: AsyncDBSession,
 ):
     user = await repository_users.get_user_by_email(body.email, db)
     if user.confirmed:

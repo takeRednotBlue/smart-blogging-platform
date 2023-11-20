@@ -1,9 +1,15 @@
 import asyncio
 from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+    AsyncAttrs,
+)
 from sqlalchemy.orm import DeclarativeBase
+import asyncio
+
 
 from src.conf.config import settings
 
@@ -21,7 +27,7 @@ class Base(DeclarativeBase):
 # function for development stage to create tables without migrations
 async def create_db_and_tables():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 

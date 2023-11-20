@@ -1,10 +1,11 @@
 import asyncio
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytest_asyncio
 import redis.asyncio as redis
-from fastapi_limiter import FastAPILimiter
+from fastapi.testclient import TestClient
+from fastapi_limiter.depends import FastAPILimiter
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -13,7 +14,6 @@ from main import app
 from src.conf.config import settings
 from src.database.db import Base, get_async_db
 from src.database.models.users import User
-from src.repository.users import create_user
 from src.schemas.users import UserModel
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
@@ -22,7 +22,7 @@ engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 AsyncTestingSessionLocal = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
+    autocommit=False, autoflush=False, bind=engine, expire_on_commit=False
 )
 
 
@@ -44,6 +44,11 @@ async def session():
         yield session
 
 
+@pytest.fixture(scope="module")
+def sync_client():
+    return TestClient(app)
+
+
 @pytest_asyncio.fixture(scope="module")
 async def client(session):
     # Dependency override
@@ -54,6 +59,7 @@ async def client(session):
             session.close()
 
     app.dependency_overrides[get_async_db] = override_get_db
+
     async with AsyncClient(app=app, base_url="http://test") as client:
         r = await redis.Redis(
             host=settings.redis_host,
@@ -63,8 +69,29 @@ async def client(session):
             decode_responses=True,
         )
         await FastAPILimiter.init(r)
-    async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
+
+
+@pytest_asyncio.fixture(scope="module")
+async def token(client, user, session):
+    with patch("src.api.auth.send_email", MagicMock()):
+        await client.post("/api/v1/auth/signup", json=user)
+        current_user: User = (
+            await session.execute(
+                select(User).where(User.email == user.get("email"))
+            )
+        ).scalar_one_or_none()
+        current_user.confirmed = True
+        session.commit()
+        response = await client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": user.get("email"),
+                "password": user.get("password"),
+            },
+        )
+        data = response.json()
+        return data["access_token"]
 
 
 @pytest.fixture(scope="module")

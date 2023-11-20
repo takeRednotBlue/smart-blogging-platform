@@ -1,6 +1,7 @@
 from logging.config import dictConfig
 
 import redis.asyncio as redis
+import uvicorn
 from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
 
@@ -11,17 +12,13 @@ from src.log_config import LogConfig
 dictConfig(LogConfig().model_dump())
 
 app = FastAPI()
+
 app.include_router(router, prefix="/api")
-
-
-@app.get("/")
-def root():
-    return {"message": "Smart Blogging Platform API"}
 
 
 @app.on_event("startup")
 async def startup():
-    r = redis.Redis(
+    r = await redis.Redis(
         host=settings.redis_host,
         port=settings.redis_port,
         db=0,
@@ -31,11 +28,10 @@ async def startup():
     await FastAPILimiter.init(r)
 
 
+@app.get("/")
+def root():
+    return {"message": "Smart Blogging Platform API"}
+
+
 if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app="main:app", reload=True)
-
-    # import asyncio
-    # from src.database.db import create_db_and_tables
-    # asyncio.run(create_db_and_tables())
+    uvicorn.run(app, host="0.0.0.0", port=8000)

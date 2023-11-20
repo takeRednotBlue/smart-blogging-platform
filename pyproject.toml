@@ -24,9 +24,7 @@ cloudinary = "^1.36.0"
 pydantic-settings = "^2.0.3"
 fastapi-jwt-auth = "^0.5.0"
 sqlalchemy = "^2.0.22"
-easy-open-ai = "^0.1.8"
-psycopg = "^3.1.12"
-greenlet = "^3.0.1"
+easy-open-ai = "0.2.0"
 asyncpg = "^0.29.0"
 
 [tool.poetry.group.dev.dependencies]
