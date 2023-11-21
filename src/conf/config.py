@@ -20,9 +20,7 @@ class Settings(BaseSettings):
     cloudinary_url: str
     openai_api_key: str
 
-    model_config = ConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 settings = Settings()
