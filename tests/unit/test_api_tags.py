@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import patch
 
-from src.services.auth import auth_service
+import pytest
+
 from src.schemas.tags import TagModel
+from src.services.auth import auth_service
 
 
 @pytest.fixture(scope="module")
@@ -33,7 +34,6 @@ async def test_get_tag(client, token):
         r_mock.get.return_value = None
         response = await client.get(
             "/api/v1/tags/test_tag",
-            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200, response.text
         data = response.json()
@@ -42,11 +42,11 @@ async def test_get_tag(client, token):
 
 
 @pytest.mark.asyncio
-async def test_get_tags(client, token):
+async def test_get_tags(client):
     with patch.object(auth_service, "r") as r_mock:
         r_mock.get.return_value = None
         response = await client.get(
-            "/api/v1/tags/", headers={"Authorization": f"Bearer {token}"}
+            "/api/v1/tags/",
         )
         assert response.status_code == 200, response.text
         data = response.json()

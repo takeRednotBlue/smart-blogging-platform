@@ -1,16 +1,31 @@
-from fastapi import APIRouter, Query, Depends
-from fastapi_limiter.depends import RateLimiter
-from src.services.autocomplete import exmple_list_autocoplete
+from typing import Annotated
+
 from easy_open_ai import aautocomplete_text
+from fastapi import APIRouter, Depends, Query
+from fastapi_limiter.depends import RateLimiter
 
+from src.database.models.users import User
+from src.services.auth import auth_service
+from src.services.autocomplete import exmple_list_autocoplete
 
-autocomplete_router = APIRouter(prefix="/autocomplete")
-
+# Dependencies
+AuthRequired = Depends(auth_service.get_current_user)
 RequestLimiter = Depends(RateLimiter(times=60, seconds=60))
 
-@autocomplete_router.get("/", name="text_autocomplete", dependencies=[RequestLimiter],)
+autocomplete_router = APIRouter(
+    prefix="/autocomplete",
+    tags=["authocomplete"],
+    dependencies=[AuthRequired],
+)
+
+
+@autocomplete_router.get(
+    "/",
+    name="text_autocomplete",
+    dependencies=[RequestLimiter],
+)
 async def autocomplete_text(
-    query_param: str = Query(..., description="Autocomplete query")
+    query_param: str = Query(..., description="Autocomplete query"),
 ):
     """# Autocomplete Text
 
@@ -36,12 +51,17 @@ async def autocomplete_text(
     - `HTTPException 429`: If too many requests.
 
     ### Example
-    - Get autocomplete suggestion: [GET] `/api/v1/autocomplete/?query_param=example`"""
+    - Get autocomplete suggestion: [GET] `/api/v1/autocomplete/?query_param=example`
+    """
     suggestion = await aautocomplete_text(query_param)
     return {"suggestion": suggestion}
 
 
-@autocomplete_router.get("/fruits", name="fruits_list_autocomplete", dependencies=[RequestLimiter],)
+@autocomplete_router.get(
+    "/fruits",
+    name="fruits_list_autocomplete",
+    dependencies=[RequestLimiter],
+)
 async def autocomplete_fruits(
     query_param: str = Query(..., description="Autocomplete query")
 ):

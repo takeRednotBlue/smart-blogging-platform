@@ -12,16 +12,17 @@ from src.schemas.tags import TagModel, TagResponse
 from src.services.auth import auth_service
 from src.services.role_checker import RoleChecker
 
-router = APIRouter(prefix="/tags", tags=["tags"])
-
 # Dependencies
 RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
 AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
 AuthCurrentUser = Annotated[User, Depends(auth_service.get_current_user)]
+AuthRequired = Depends(auth_service.get_current_user)
 
 # Allowed roles
 allowed_delete_tags = RoleChecker([Roles.admin, Roles.moderator])
 allowed_update_tags = RoleChecker([Roles.admin, Roles.moderator])
+
+router = APIRouter(prefix="/tags", tags=["tags"])
 
 
 @router.get(
@@ -31,7 +32,6 @@ allowed_update_tags = RoleChecker([Roles.admin, Roles.moderator])
 )
 async def read_tags(
     db: AsyncDBSession,
-    current_user: AuthCurrentUser,
 ) -> List[TagResponse]:
     """
     ### Description
@@ -55,12 +55,11 @@ async def read_tags(
     "/",
     response_model=TagResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[RequestLimiter],
+    dependencies=[RequestLimiter, AuthRequired],
 )
 async def create_tag(
     body: TagModel,
     db: AsyncDBSession,
-    current_user: AuthCurrentUser,
 ) -> Tag:
     """
     ### Description
@@ -95,7 +94,6 @@ async def create_tag(
 )
 async def read_tag(
     db: AsyncDBSession,
-    current_user: AuthCurrentUser,
     tagname: str = Path(description="The name of the tag to get"),
 ) -> Tag:
     """
@@ -128,12 +126,11 @@ async def read_tag(
 @router.put(
     "/{tagname}",
     response_model=TagResponse,
-    dependencies=[RequestLimiter, Depends(allowed_update_tags)],
+    dependencies=[RequestLimiter, AuthRequired, Depends(allowed_update_tags)],
 )
 async def update_tag(
     body: TagModel,
     db: AsyncDBSession,
-    current_user: AuthCurrentUser,
     tagname: str = Path(description="The name of the tag to put"),
 ) -> Tag:
     """
@@ -169,12 +166,12 @@ async def update_tag(
     response_model=TagResponse,
     dependencies=[
         RequestLimiter,
+        AuthRequired,
         Depends(allowed_delete_tags),
     ],
 )
 async def remove_tag(
     db: AsyncDBSession,
-    current_user: AuthCurrentUser,
     tagname: str = Path(description="The name of the tag to delete"),
 ) -> Tag:
     """

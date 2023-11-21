@@ -23,7 +23,7 @@ from src.schemas.ratings import PostRatingResponse, RatingModel, RatingResponse
 from src.services.auth import auth_service
 from src.services.role_checker import RoleChecker
 
-router = APIRouter(prefix="/posts", tags=["posts"])
+router = APIRouter(prefix="/posts")
 
 # Dependencies
 RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
@@ -41,6 +41,7 @@ logger.setLevel(logging.INFO)
     "/",
     response_model=List[PostResponse],
     dependencies=[RequestLimiter],
+    tags=["posts"],
 )
 async def get_all_posts(db: AsyncDBSession):
     """# Get All Posts
@@ -75,6 +76,7 @@ async def get_all_posts(db: AsyncDBSession):
     "/{post_id}",
     response_model=PostResponseOne,
     dependencies=[RequestLimiter],
+    tags=["posts"],
 )
 async def get_post(post_id: int, db: AsyncDBSession):
     """# Get Post
@@ -153,6 +155,7 @@ async def create_post(
     "/{post_id}",
     response_model=PostResponse,
     dependencies=[RequestLimiter],
+    tags=["posts"],
 )
 async def update_post(
     body: PostUpdate,
@@ -197,6 +200,7 @@ async def update_post(
     "/{post_id}",
     response_model=PostResponse,
     dependencies=[RequestLimiter],
+    tags=["posts"],
 )
 async def delete_post(
     post_id: int,
