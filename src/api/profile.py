@@ -18,8 +18,6 @@ RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
 AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
 AuthCurrentUser = Annotated[User, Depends(auth_service.get_current_user)]
 
-async_db = Annotated[AsyncSession, Depends(get_async_db)]
-
 
 @router.get("/", response_model=ProfileInfoResponse)
 async def get_profile_info(db: AsyncDBSession, current_user: AuthCurrentUser):
@@ -46,7 +44,7 @@ async def get_profile_info(db: AsyncDBSession, current_user: AuthCurrentUser):
     - `HTTPException(status_code=404)`: If the user is not found.
 
     ### Example
-    - Get profile info: [GET] `/`"""
+    - Get profile info: [GET] `api/v1/profile/`"""
     user = await repository_profile.get_profile_info(current_user, db)
     return user
 
@@ -84,7 +82,7 @@ async def update_profile_info(
     - `HTTPException(status_code=status.HTTP_404_NOT_FOUND)`: If the user is not found.
 
     ### Example
-    - Update profile info: [PUT] `/`"""
+    - Update profile info: [PUT] `api/v1/profile/`"""
     user = await repository_profile.update_profile_info(body, current_user, db)
 
     return user
@@ -98,9 +96,7 @@ async def get_profile(db: AsyncDBSession, username: str):
     This endpoint retrieves the profile information of a user based on their username.
 
     ### Authorization
-    - Access to this endpoint requires users to be authenticated.
     - Allowed roles: "Admin", "Moderator", "User".
-    - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
     - No limit.

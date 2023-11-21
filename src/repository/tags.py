@@ -1,11 +1,13 @@
 from typing import List
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.database.models.tags import Tag
 from src.schemas.tags import TagModel
 
 
-async def get_tags(db: AsyncSession) ->List[Tag]:
+async def get_tags(db: AsyncSession) -> List[Tag]:
     """Returns a list of all tags from the database.
 
     :param db: The database session.
@@ -16,7 +18,7 @@ async def get_tags(db: AsyncSession) ->List[Tag]:
     return result.scalars().all()
 
 
-async def create_tag(body: TagModel, db: AsyncSession) ->Tag:
+async def create_tag(body: TagModel, db: AsyncSession) -> Tag:
     """Creates a new tag in the database.
 
     :param body: The tag model containing the name of the tag.
@@ -32,7 +34,7 @@ async def create_tag(body: TagModel, db: AsyncSession) ->Tag:
     return tag
 
 
-async def get_tag(tagname: str, db: AsyncSession) ->Tag:
+async def get_tag(tagname: str, db: AsyncSession) -> Tag:
     """Retrieves a tag from the database based on the tag name.
 
     :param tagname: The name of the tag to retrieve.
@@ -45,7 +47,7 @@ async def get_tag(tagname: str, db: AsyncSession) ->Tag:
     return result.scalars().first()
 
 
-async def update_tag(tagname: str, body: TagModel, db: AsyncSession) ->Tag:
+async def update_tag(tagname: str, body: TagModel, db: AsyncSession) -> Tag:
     """Updates the name of a tag in the database.
 
     :param tagname: The name of the tag to update.
@@ -56,8 +58,11 @@ async def update_tag(tagname: str, body: TagModel, db: AsyncSession) ->Tag:
     :type db: AsyncSession
     :return: The updated tag.
     :rtype: Tag"""
-    tag = (await db.execute(select(Tag).where(Tag.name == tagname))).scalars(
-        ).first()
+    tag = (
+        (await db.execute(select(Tag).where(Tag.name == tagname)))
+        .scalars()
+        .first()
+    )
     if not tag:
         return None
     tag.name = body.name
@@ -66,7 +71,7 @@ async def update_tag(tagname: str, body: TagModel, db: AsyncSession) ->Tag:
     return tag
 
 
-async def remove_tag(tagname: str, db: AsyncSession) ->Tag:
+async def remove_tag(tagname: str, db: AsyncSession) -> Tag:
     """Removes a tag from the database.
 
     :param tagname: The name of the tag to be removed.
@@ -75,8 +80,11 @@ async def remove_tag(tagname: str, db: AsyncSession) ->Tag:
     :type db: AsyncSession
     :return: The removed tag, or None if the tag does not exist.
     :rtype: Tag"""
-    tag = (await db.execute(select(Tag).where(Tag.name == tagname))).scalars(
-        ).first()
+    tag = (
+        (await db.execute(select(Tag).where(Tag.name == tagname)))
+        .scalars()
+        .first()
+    )
     if not tag:
         return None
     await db.delete(tag)

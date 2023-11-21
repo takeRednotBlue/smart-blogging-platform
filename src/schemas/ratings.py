@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+
 from src.database.models.rating import RatingTypes
 
 

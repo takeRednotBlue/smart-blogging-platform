@@ -29,6 +29,8 @@ router = APIRouter(prefix="/posts")
 RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
 AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
 AuthCurrentUser = Annotated[User, Depends(auth_service.get_current_user)]
+AuthRequired = Depends(auth_service.get_current_user)
+
 
 # Allowed roles to access endpoint
 allowed_delete_comment = RoleChecker([Roles.admin, Roles.moderator])
@@ -50,9 +52,7 @@ async def get_all_posts(db: AsyncDBSession):
     This endpoint retrieves all posts from the database.
 
     ### Authorization
-    - Access to this endpoint requires users to be authenticated.
     - Allowed roles: "Admin", "Moderator", "User".
-    - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
     - Maximum of 10 requests per 60 seconds.
@@ -85,9 +85,7 @@ async def get_post(post_id: int, db: AsyncDBSession):
     This endpoint retrieves a specific post by its ID.
 
     ### Authorization
-    - Access to this endpoint requires users to be authenticated.
     - Allowed roles: "Admin", "Moderator", "User".
-    - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
     - Maximum of 10 requests per 60 seconds.
@@ -105,7 +103,9 @@ async def get_post(post_id: int, db: AsyncDBSession):
     - Retrieve a post: [GET] `/api/v1/posts/1`"""
     post = await repository_posts.get_post(post_id, db)
     if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
     return post
 
 
@@ -142,7 +142,6 @@ async def create_post(
 
     ### Raises
     - `HTTPException 401`: Unauthorized - When the user is not authenticated.
-    - `HTTPException 403`: Forbidden - When the user does not have the required role.
 
     ### Example
     - Create a post: [POST] `/api/v1/posts/`"""
@@ -189,7 +188,9 @@ async def update_post(
     - Update a post: [PUT] `/api/v1/posts/{post_id}`"""
     post = await repository_posts.update_post(post_id, current_user, body, db)
     if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
     return post
 
 
@@ -230,7 +231,9 @@ async def delete_post(
     - Delete post: [DELETE] `/api/v1/posts/{post_id}`"""
     post = await repository_posts.remove_post(post_id, current_user, db)
     if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
     return post
 
 
@@ -258,7 +261,7 @@ async def create_comment(
     - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
-    - Maximum of 5 requests per 60 seconds.
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
     - `post_id` (**int**, required): The ID of the post to create the comment for.
@@ -272,7 +275,9 @@ async def create_comment(
 
     ### Example
     - Create a comment: [POST] `/api/v1/contacts/{post_id}/comments`"""
-    comment = await repository_comments.create_comment(body, post_id, current_user, db)
+    comment = await repository_comments.create_comment(
+        body, post_id, current_user, db
+    )
     if comment:
         return comment
     raise HTTPException(404, detail="Post not found")
@@ -281,6 +286,7 @@ async def create_comment(
 @router.get(
     "/{post_id}/comments",
     response_model=list[CommentResponse],
+    dependencies=[RequestLimiter],
     tags=["comments"],
 )
 async def read_post_comments(post_id: int, db: AsyncDBSession):
@@ -290,12 +296,10 @@ async def read_post_comments(post_id: int, db: AsyncDBSession):
     This endpoint retrieves the comments for a specific post.
 
     ### Authorization
-    - Access to this endpoint requires users to be authenticated.
     - Allowed roles: "Admin", "Moderator", "User".
-    - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
-    - No limit
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
     - `post_id` (**int**, required): The ID of the post to retrieve comments for.
@@ -317,7 +321,7 @@ async def read_post_comments(post_id: int, db: AsyncDBSession):
 
 @router.put(
     "/{post_id}/comments/{comment_id}",
-    dependencies=[Depends(RateLimiter(times=10, seconds=60))],
+    dependencies=[RequestLimiter],
     response_model=CommentResponse,
     tags=["comments"],
 )
@@ -352,7 +356,9 @@ async def update_comment(
 
     ### Example
     - Update comment: [PUT] `/api/v1/posts/{post_id}/comments/{comment_id}`"""
-    comment = await repository_comments.update_comment(body, comment_id, current_user, db)
+    comment = await repository_comments.update_comment(
+        body, comment_id, current_user, db
+    )
     if not comment:
         raise HTTPException(404, detail="Post not found")
     return comment
@@ -378,7 +384,7 @@ async def remove_comment(
     - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
-    - No limit
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
     - `comment_id` (**int**, required): The ID of the comment to be removed.
@@ -394,7 +400,7 @@ async def remove_comment(
     """
     deleted_comment = await repository_comments.remove_comment(comment_id, db)
     if deleted_comment:
-        logger.info(
+        logger.debug(
             f"Current user {current_user.email} with role '{current_user.roles.value}' \
 deleted comment '{deleted_comment.comment}' on post with ID '{deleted_comment.post_id}' \
 left by '{deleted_comment.user.username}'."
@@ -418,7 +424,6 @@ left by '{deleted_comment.user.username}'."
 async def read_rating_of_post(
     db: AsyncDBSession,
     post_id,
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> int:
     """# Read Rating of Post
 
@@ -426,12 +431,10 @@ async def read_rating_of_post(
     This endpoint retrieves the rating of a specific post.
 
     ### Authorization
-    - Access to this endpoint requires users to be authenticated.
     - Allowed roles: "Admin", "Moderator", "User".
-    - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
-    - Maximum of 5 requests per 60 seconds.
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
     - `post_id` (**int**, required): The ID of the post.
@@ -461,7 +464,6 @@ async def read_rating_of_post(
 async def read_ratings_of_post(
     db: AsyncDBSession,
     post_id,
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> List[PostRatingResponse]:
     """# Read Ratings of Post
 
@@ -469,12 +471,10 @@ async def read_ratings_of_post(
     This endpoint retrieves the ratings of a specific post.
 
     ### Authorization
-    - Access to this endpoint requires users to be authenticated.
     - Allowed roles: "Admin", "Moderator", "User".
-    - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
-    - Maximum of 5 requests per 60 seconds.
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
     - `post_id` (**str**, required): The ID of the post.
@@ -498,14 +498,13 @@ async def read_ratings_of_post(
 @router.delete(
     "/{post_id}/ratings/{rating_id}",
     response_model=RatingResponse,
-    dependencies=[RequestLimiter],
+    dependencies=[RequestLimiter, AuthRequired],
     tags=["ratings"],
 )
 async def delete_rating(
     db: AsyncDBSession,
     post_id: int,
     rating_id: int,
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> RatingResponse:
     """# Delete Rating
 
@@ -553,14 +552,13 @@ async def delete_rating(
     "/{post_id}/ratings",
     response_model=RatingResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[RequestLimiter],
+    dependencies=[RequestLimiter, AuthRequired],
     tags=["ratings"],
 )
 async def add_rating_for_post(
     body: RatingModel,
     db: AsyncDBSession,
     post_id: int,
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> RatingResponse:
     """# add_rating_for_post
 

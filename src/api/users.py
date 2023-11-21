@@ -16,9 +16,11 @@ from src.services.role_checker import RoleChecker
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-# Dependencies
+# Dependecies
 AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
 RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
+AuthCurrentUser = Annotated[User, Depends(auth_service.get_current_user)]
+AuthRequired = Depends(auth_service.get_current_user)
 
 # Allowed roles
 allowed_assign_role = RoleChecker([Roles.admin, Roles.superuser])
@@ -27,12 +29,11 @@ allowed_assign_role = RoleChecker([Roles.admin, Roles.superuser])
 @router.get(
     "/{user_id}/ratings",
     response_model=List[UserRatingResponse],
-    dependencies=[Depends(RateLimiter(times=5, seconds=60))],
+    dependencies=[RequestLimiter, AuthRequired],
 )
 async def read_ratings_of_user(
     db: AsyncDBSession,
     user_id,
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> List[UserRatingResponse]:
     """# Get User Ratings
 
@@ -45,11 +46,10 @@ async def read_ratings_of_user(
     - The access JWT token should be passed in the request header for authentication.
 
     ### Request limit
-    - Maximum of 5 requests per 60 seconds.
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
     - `user_id` (**int**, required): The ID of the user.
-    - `current_user` (**User**, optional): The current authenticated user. (default: None)
 
     ### Returns
     - `List[UserRatingResponse]`: A list of user ratings.
@@ -75,8 +75,34 @@ async def assign_role_to_user(
     user_id: int,
     body: RoleRequest,
     db: AsyncDBSession,
-    current_user: User = Depends(auth_service.get_current_user),
+    current_user: AuthCurrentUser,
 ):
+    """# Assign role to user
+
+    ### Description    This endpoint is used to assign a role to a user. The role is specified in the request body. Only users with the "superuser" role can assign the "admin" role to other users.
+
+    ### Authorization
+    - Access to this endpoint requires users to be authenticated.
+    - Allowed roles: "Superuser", "Admin".
+    - The access JWT token should be passed in the request header for authentication.
+
+    ### Request limit
+    - Maximum of 10 requests per 60 seconds.
+
+    ### Query Parameters
+    - `user_id` (**int**, required): The ID of the user to assign the role to.
+    - `body` (**RoleRequest**, required): The role to assign to the user.
+
+    ### Returns
+    - `JSONResponse`: A JSON response indicating the success of the role assignment.
+
+    ### Raises
+    - `HTTPException(status_code=status.HTTP_403_FORBIDDEN)`: Raised when a non-superuser tries to assign the admin role.
+    - `HTTPException(status_code=status.HTTP_404_NOT_FOUND)`: Raised when the user specified by the user_id is not found.
+
+    ### Example
+    - Assign the "admin" role to user with ID 123: [POST] `/api/v1/contacts/123/assign_role`
+    """
     if current_user.roles != Roles.superuser and body.role == Roles.admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

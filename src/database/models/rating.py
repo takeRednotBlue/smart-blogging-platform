@@ -1,11 +1,11 @@
 import enum
 
-from sqlalchemy import Column, Integer, Enum
+from sqlalchemy import Column, Enum, Integer
 from sqlalchemy.sql.schema import ForeignKey
 
 from src.database.db import Base
-from src.database.models.users import User
 from src.database.models.posts import Post
+from src.database.models.users import User
 
 
 class RatingTypes(enum.Enum):

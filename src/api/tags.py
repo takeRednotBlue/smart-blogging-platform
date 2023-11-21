@@ -26,28 +26,31 @@ router = APIRouter(prefix="/tags", tags=["tags"])
 
 
 @router.get(
-    "/",
-    response_model=List[TagResponse],
-    dependencies=[RequestLimiter],
+    "/", response_model=List[TagResponse], dependencies=[RequestLimiter]
 )
-async def read_tags(
-    db: AsyncDBSession,
-) -> List[TagResponse]:
-    """
+async def read_tags(db: AsyncDBSession) -> List[TagResponse]:
+    """# Read Tags
+
     ### Description
-    Returns a list of tag responses.
+    This endpoint retrieves a list of tags from the database.
 
     ### Authorization
-    - Only authorized user can get all tags.
+    - Allowed roles: "Admin", "Moderator", "User".
 
+    ### Request limit
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
-    - `db` (**AsyncDBSession**): The async database connection.
-    - `current_user` (**User**): The current authenticated user.
+    - None.
 
     ### Returns
-    - `List[TagResponse]`: A list of tag responses.
-    """
+    - List[TagResponse]: A list of tags retrieved from the database.
+
+    ### Raises
+    - None.
+
+    ### Example
+    - GET `http://example.com/api/v1/contacts/`"""
     return await repository_tags.get_tags(db)
 
 
@@ -57,28 +60,31 @@ async def read_tags(
     status_code=status.HTTP_201_CREATED,
     dependencies=[RequestLimiter, AuthRequired],
 )
-async def create_tag(
-    body: TagModel,
-    db: AsyncDBSession,
-) -> Tag:
-    """
+async def create_tag(body: TagModel, db: AsyncDBSession) -> Tag:
+    """# Create Tag
+
     ### Description
-    Creates a new tag.
+    This endpoint is used to create a new tag.
 
     ### Authorization
-    - Only authorized user can create new tag.
+    - Access to this endpoint requires users to be authenticated.
+    - Allowed roles: "Admin", "Moderator", "User".
+    - The access JWT token should be passed in the request header for authentication.
+
+    ### Request limit
+    - Maximum 10 requests per 60 seconds.
 
     ### Query Parameters
-    - `body` (**TagModel**): The tag model containing the tag information.
-    - `db` (**AsyncDBSession**): The async database connection.
-    - `current_user` (**User**): The current authenticated user.
+    - `body` (**TagModel**, required): The tag data to be created.
 
     ### Returns
-    - `TagModel`: The created tag.
+    - `TagResponse`: The created tag data.
 
     ### Raises
-    - `Exeption with 409 HTTP code`: If the tag already exists.
-    """
+    - `HTTPException(status_code=409)`: If the tag already exists.
+
+    ### Example
+    - Create a new tag: [POST] `/api/v1/contacts/`"""
     tag = await repository_tags.get_tag(body.name, db)
     if tag:
         raise HTTPException(
@@ -88,33 +94,34 @@ async def create_tag(
 
 
 @router.get(
-    "/{tagname}",
-    response_model=TagResponse,
-    dependencies=[RequestLimiter],
+    "/{tagname}", response_model=TagResponse, dependencies=[RequestLimiter]
 )
 async def read_tag(
     db: AsyncDBSession,
     tagname: str = Path(description="The name of the tag to get"),
 ) -> Tag:
-    """
+    """# Get Tag
+
     ### Description
-    This function is a GET endpoint that retrieves a tag by its name.
+    This endpoint retrieves a tag by its name.
 
     ### Authorization
-    - Only authorized user can get the tag.
+    - Allowed roles: "Admin", "Moderator", "User".
+
+    ### Request limit
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
-    - `db` (**AsyncDBSession**): The async database connection.
-    - `tagname` (**str**): The name of the tag to get.
-    - `current_user` (**User**): The current authenticated user.
+    - `tagname` (**str**, optional): The name of the tag to get.
 
     ### Returns
-    - `TagResponse`: It returns a `TagResponse` object.
+    - `TagResponse`: The retrieved tag.
 
     ### Raises
-    - `Exeption with 404 HTTP code`: If the tag is not found.
+    - `HTTPException(status_code=404)`: If the tag is not found.
 
-    """
+    ### Example
+    - Get tag: [GET] `/api/v1/contacts/{tagname}`"""
     tag = await repository_tags.get_tag(tagname, db)
     if tag is None:
         raise HTTPException(
@@ -133,26 +140,30 @@ async def update_tag(
     db: AsyncDBSession,
     tagname: str = Path(description="The name of the tag to put"),
 ) -> Tag:
-    """
+    """# Update Tag
+
     ### Description
-    Updates a tag with the given name.
+    This endpoint allows authenticated users with the roles "Admin", "Moderator", or "User" to update a tag. The tag is identified by its name.
 
     ### Authorization
-    - Only authorized user can change the tag.
+    - Access to this endpoint requires authentication.
+    - Allowed roles: "Admin", "Moderator".
+    - The access JWT token should be passed in the request header for authentication.
+
+    ### Request limit
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
-
-    - `tagname` (**str**): The name of the tag to update.
-    - `body` (**TagModel**): The updated tag model.
-    - `db` (**AsyncDBSession**): The async database connection.
-    - `current_user` (**User**): The current authenticated user.
+    - `tagname` (**str**, required): The name of the tag to update.
 
     ### Returns
-    - `Tag`: The updated tag.
+    - `TagResponse`: The updated tag information.
 
     ### Raises
-    - `Exeption with 404 HTTP code`: If the tag is not found.
-    """
+    - `HTTPException(status_code=404)`: If the tag is not found.
+
+    ### Example
+    - Update tag: [PUT] `/api/v1/contacts/{tagname}`"""
     tag = await repository_tags.update_tag(tagname, body, db)
     if tag is None:
         raise HTTPException(
@@ -164,37 +175,36 @@ async def update_tag(
 @router.delete(
     "/{tagname}",
     response_model=TagResponse,
-    dependencies=[
-        RequestLimiter,
-        AuthRequired,
-        Depends(allowed_delete_tags),
-    ],
+    dependencies=[RequestLimiter, AuthRequired, Depends(allowed_delete_tags)],
 )
 async def remove_tag(
     db: AsyncDBSession,
     tagname: str = Path(description="The name of the tag to delete"),
 ) -> Tag:
-    """
+    """# Remove Tag
+
     ### Description
-    Deletes a tag from the database.
+    This endpoint is used to remove a tag from the database.
 
     ### Authorization
-    - Only authorized user can remove the tag.
+    - Access to this endpoint requires users to be authenticated.
+    - Allowed roles: "Admin", "Moderator".
+    - The access JWT token should be passed in the request header for authentication.
+
+    ### Request limit
+    - Maximum of 10 requests per 60 seconds.
 
     ### Query Parameters
-
-    - `tagname` (**str**): The name of the tag to update.
-    - `db` (**AsyncDBSession**): The async database connection.
-    - `current_user` (**User**): The current authenticated user.
+    - `tagname` (**str**, required): The name of the tag to delete.
 
     ### Returns
-    - `Tag`: The deleted tag.
+    - `TagResponse`: The response containing the details of the deleted tag.
 
     ### Raises
-    - `Exeption with 404 HTTP code`: If the tag is not found.
-    - `Exeption with 422 HTTP code`: If there is an error deleting the tag.
+    - `HTTPException(status_code=404)`: If the tag is not found in the database.
 
-    """
+    ### Example
+    - Delete tag: DELETE `http://example.com/api/v1/contacts/{tagname}`"""
     tag = await repository_tags.remove_tag(tagname, db)
     if tag is None:
         raise HTTPException(

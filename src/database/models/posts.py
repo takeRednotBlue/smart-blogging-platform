@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, String, DateTime, Table
-from sqlalchemy.orm import relationship
-from src.database.db import Base
-from sqlalchemy.sql.schema import ForeignKey
 from datetime import datetime
 
+from sqlalchemy import Column, DateTime, Integer, String, Table
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import ForeignKey
+
+from src.database.db import Base
 
 posts_tags = Table(
     "posts_tags",

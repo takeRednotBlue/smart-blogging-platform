@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List, ClassVar
 from datetime import datetime
+from typing import ClassVar, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from src.schemas.tags import TagResponse
 
 
@@ -37,8 +39,7 @@ class PostResponse(PostModel):
     created_at: datetime
     tags: List[TagResponse]
 
-    class Config:
-        model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PostResponseOne(PostModel):
@@ -47,5 +48,4 @@ class PostResponseOne(PostModel):
     tags: List[TagResponse]
     comments: List[CommentsResponse]
 
-    class Config:
-        model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)

@@ -1,9 +1,8 @@
 from typing import List
 
 from fastapi import HTTPException
-from sqlalchemy import func, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.database.models.comments import Comment

@@ -1,10 +1,7 @@
-from typing import Annotated
-
 from easy_open_ai import aautocomplete_text
 from fastapi import APIRouter, Depends, Query
 from fastapi_limiter.depends import RateLimiter
 
-from src.database.models.users import User
 from src.services.auth import auth_service
 from src.services.autocomplete import exmple_list_autocoplete
 
@@ -22,7 +19,7 @@ autocomplete_router = APIRouter(
 @autocomplete_router.get(
     "/",
     name="text_autocomplete",
-    dependencies=[RequestLimiter],
+    dependencies=[RequestLimiter, AuthRequired],
 )
 async def autocomplete_text(
     query_param: str = Query(..., description="Autocomplete query"),
@@ -60,7 +57,7 @@ async def autocomplete_text(
 @autocomplete_router.get(
     "/fruits",
     name="fruits_list_autocomplete",
-    dependencies=[RequestLimiter],
+    dependencies=[RequestLimiter, AuthRequired],
 )
 async def autocomplete_fruits(
     query_param: str = Query(..., description="Autocomplete query")

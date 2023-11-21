@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
-
 from src.conf.config import settings
 
 DATABASE_URL = settings.sqlalchemy_database_url

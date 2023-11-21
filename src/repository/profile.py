@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models.users import User
 from src.database.models.posts import Post
+from src.database.models.users import User
 
 
 async def get_profile(username: str, db: AsyncSession):
