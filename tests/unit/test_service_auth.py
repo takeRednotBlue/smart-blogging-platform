@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, status
@@ -17,9 +17,7 @@ class TestServiceAuth:
         wrong_password = "wrong"
         hashed_password = auth_service.get_password_hash(password)
         assert auth_service.verify_password(password, hashed_password)
-        assert not auth_service.verify_password(
-            wrong_password, hashed_password
-        )
+        assert not auth_service.verify_password(wrong_password, hashed_password)
         assert password != hashed_password
 
     async def test_create_access_token(self):
@@ -54,16 +52,12 @@ class TestServiceAuth:
         )
         with patch.object(auth_service, "r") as r_mock:
             r_mock.get.return_value = None
-            result_user = await auth_service.get_current_user(
-                session, access_token
-            )
+            result_user = await auth_service.get_current_user(session, access_token)
             mock_get_user_by_email.assert_awaited_once()
             assert mock_get_user_by_email.call_count == 1
             assert user == result_user
 
-    async def test_get_current_user_not_found(
-        self, session, monkeypatch, user
-    ):
+    async def test_get_current_user_not_found(self, session, monkeypatch, user):
         user_data = {"sub": user.get("email")}
         access_token = await auth_service.create_access_token(user_data)
         mock_get_user_by_email = AsyncMock(return_value=None)
@@ -81,9 +75,7 @@ class TestServiceAuth:
             assert excinfo.value.detail == "Could not validate credentials."
             assert excinfo.type is HTTPException
 
-    async def test_get_current_user_wrong_token_scope(
-        self, session, monkeypatch, user
-    ):
+    async def test_get_current_user_wrong_token_scope(self, session, monkeypatch, user):
         user_data = {"sub": user.get("email")}
         wrong_token = await auth_service.create_refresh_token(user_data)
         with pytest.raises(HTTPException) as excinfo:

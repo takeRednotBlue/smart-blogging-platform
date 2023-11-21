@@ -1,5 +1,6 @@
 import pytest
-from src.services.autocomplete import list_suggestions, exmple_list_autocoplete
+
+from src.services.autocomplete import exmple_list_autocoplete, list_suggestions
 
 
 def test_list_suggestions():
@@ -32,10 +33,12 @@ def test_exmple_list_autocoplete():
     assert suggestions == []
 
 
-def test_autocomplete_fruits(sync_client):
+def test_autocomplete_fruits(sync_client, token):
     query_param = "app"
     response = sync_client.get(
-        "/api/v1/autocomplete/fruits", params={"query_param": query_param}
+        "/api/v1/autocomplete/fruits",
+        params={"query_param": query_param},
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -43,9 +46,13 @@ def test_autocomplete_fruits(sync_client):
     assert isinstance(data["suggestions"], list)
 
 
-def test_autocomplete_text(sync_client):
+def test_autocomplete_text(sync_client, token):
     query_param = "I want to say th"
-    response = sync_client.get("/api/v1/autocomplete", params={"query_param": query_param})
+    response = sync_client.get(
+        "/api/v1/autocomplete",
+        params={"query_param": query_param},
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == 200
     data = response.json()
     assert "suggestion" in data

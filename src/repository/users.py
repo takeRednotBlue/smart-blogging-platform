@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models.users import User
-from src.schemas.users import UserModel
+from src.database.models.users import User, Roles
+from src.schemas.users import UserModel, RoleRequest
 
 
 async def get_user_by_email(email: str, db: AsyncSession) -> User | None:
@@ -34,3 +34,18 @@ async def confirmed_email(email: str, db: AsyncSession) -> None:
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def assign_role_to_user(
+    user_id: int, body: RoleRequest, db: AsyncSession
+) -> None | Roles:
+    user = (
+        await db.execute(select(User).where(User.id == user_id))
+    ).scalar_one_or_none()
+    if not user:
+        return None
+    user.roles = body.role
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user.roles

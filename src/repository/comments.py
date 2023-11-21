@@ -3,7 +3,8 @@ from typing import List
 from fastapi import HTTPException
 from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from src.database.models.comments import Comment
 from src.database.models.posts import Post  # noqa
@@ -103,7 +104,9 @@ async def remove_comment(comment_id: int, db: AsyncSession) -> Comment:
     :return: The removed comment, or None if the comment does not exist.
     :rtype: Comment"""
     removed_comment = await db.execute(
-        select(Comment).where(Comment.id == comment_id)
+        select(Comment)
+        .where(Comment.id == comment_id)
+        .options(selectinload(Comment.user))
     )
     removed_comment = removed_comment.scalar()
     if removed_comment:

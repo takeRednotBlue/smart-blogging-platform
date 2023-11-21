@@ -14,6 +14,7 @@ from fastapi.security import (
     HTTPBearer,
     OAuth2PasswordRequestForm,
 )
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_async_db
@@ -21,7 +22,6 @@ from src.repository import users as repository_users
 from src.schemas.users import RequestEmail, TokenModel, UserModel, UserResponse
 from src.services.auth import auth_service
 from src.services.email import send_email
-from fastapi_limiter.depends import RateLimiter
 
 RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
 AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]

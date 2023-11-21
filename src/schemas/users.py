@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, constr
 
 from src.database.models.users import Roles
 
@@ -21,6 +22,11 @@ class UserDb(BaseModel):
     model_config: ConfigDict = ConfigDict(from_attributes=True)
 
 
+class UserUpdate(BaseModel):
+    username: Optional[constr(min_length=5, max_length=20)] = None
+    description: Optional[constr(max_length=500)] = None
+
+
 class UserResponse(BaseModel):
     user: UserDb
     detail: str = "User successfully created."
@@ -34,3 +40,7 @@ class TokenModel(BaseModel):
 
 class RequestEmail(BaseModel):
     email: EmailStr
+
+
+class RoleRequest(BaseModel):
+    role: Roles
