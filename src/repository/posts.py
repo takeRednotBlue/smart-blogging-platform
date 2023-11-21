@@ -1,10 +1,11 @@
+from fastapi import HTTPException, status
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.database.models.posts import Post
 from src.database.models.tags import Tag
-from src.database.models.users import User
+from src.database.models.users import Roles, User
 from src.schemas.posts import PostCreate, PostUpdate
 
 
@@ -94,17 +95,19 @@ async def remove_post(post_id: int, user: User, db: AsyncSession):
     :type db: AsyncSession
     :return: The removed post if it exists and the user has permission to remove it, otherwise None.
     :rtype: Post or None"""
-    post = select(Post).where(
-        and_(Post.id == post_id, Post.user_id == user.id)
-    )
+    post = select(Post).where(Post.id == post_id)
     post = await db.execute(post)
     post_result = post.scalars().first()
-    if post_result and post_result.user_id == user.id:
-        await db.delete(post_result)
-        await db.commit()
-        return post_result
-    else:
+    if not post_result:
         return None
+    if user.roles == Roles.user and user.id != post_result.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to delete this post.",
+        )
+    await db.delete(post_result)
+    await db.commit()
+    return post_result
 
 
 async def get_posts(db: AsyncSession):

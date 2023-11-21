@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from main import app
 from src.conf.config import settings
 from src.database.db import Base, get_async_db
-from src.database.models.users import User
+from src.database.models.users import Roles, User
 from src.schemas.users import UserModel
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
@@ -94,6 +94,88 @@ async def token(client, user, session):
         return data["access_token"]
 
 
+@pytest_asyncio.fixture(scope="module")
+async def superuser_token(client, superuser_model, session):
+    with patch("src.api.auth.send_email", MagicMock()):
+        await client.post(
+            "/api/v1/auth/signup", json=superuser_model.model_dump()
+        )
+        current_user: User = (
+            await session.execute(
+                select(User).where(User.email == superuser_model.email)
+            )
+        ).scalar_one_or_none()
+        current_user.confirmed = True
+        current_user.roles = Roles.superuser
+        session.commit()
+        response = await client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": superuser_model.email,
+                "password": superuser_model.password,
+            },
+        )
+        data = response.json()
+        return data["access_token"]
+
+
+@pytest_asyncio.fixture(scope="module")
+async def moderator_token(client, moderator_user_model, session):
+    with patch("src.api.auth.send_email", MagicMock()):
+        await client.post(
+            "/api/v1/auth/signup", json=moderator_user_model.model_dump()
+        )
+        current_user: User = (
+            await session.execute(
+                select(User).where(User.email == moderator_user_model.email)
+            )
+        ).scalar_one_or_none()
+        current_user.confirmed = True
+        current_user.roles = Roles.moderator
+        session.commit()
+        response = await client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": moderator_user_model.email,
+                "password": moderator_user_model.password,
+            },
+        )
+        data = response.json()
+        return data["access_token"]
+
+
+@pytest_asyncio.fixture(scope="module")
+async def admin_token(client, admin_model, session):
+    with patch("src.api.auth.send_email", MagicMock()):
+        await client.post("/api/v1/auth/signup", json=admin_model.model_dump())
+        current_user: User = (
+            await session.execute(
+                select(User).where(User.email == admin_model.email)
+            )
+        ).scalar_one_or_none()
+        current_user.confirmed = True
+        current_user.roles = Roles.admin
+        session.commit()
+        response = await client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": admin_model.email,
+                "password": admin_model.password,
+            },
+        )
+        data = response.json()
+        return data["access_token"]
+
+
+@pytest.fixture(scope="module")
+def user():
+    return {
+        "username": "deadpool",
+        "email": "deadpool@example.com",
+        "password": "123456789",
+    }
+
+
 @pytest.fixture(scope="module")
 def db_user():
     return User(
@@ -114,26 +196,28 @@ def user_model():
     )
 
 
-@pytest_asyncio.fixture
-async def token(client, db_user, session, monkeypatch):
-    mock_send_email = MagicMock()
-    monkeypatch.setattr("src.services.email.send_email", mock_send_email)
-    await client.post(
-        "/api/v1/auth/signup",
-        json={
-            "username": db_user.username,
-            "email": db_user.email,
-            "password": db_user.password,
-        },
+@pytest.fixture(scope="module")
+def moderator_user_model():
+    return UserModel(
+        username="moderator",
+        email="moderator@example.com",
+        password="123456789",
     )
-    current_user: User = (
-        await session.execute(select(User).where(User.email == db_user.email))
-    ).scalar_one_or_none()
-    current_user.confirmed = True
-    await session.commit()
-    response = await client.post(
-        "/api/v1/auth/login",
-        data={"username": db_user.email, "password": db_user.password},
+
+
+@pytest.fixture(scope="module")
+def superuser_model():
+    return UserModel(
+        username="superuser",
+        email="superuser@example.com",
+        password="123456789",
     )
-    data = response.json()
-    return data["access_token"]
+
+
+@pytest.fixture(scope="module")
+def admin_model():
+    return UserModel(
+        username="admin",
+        email="admin@example.com",
+        password="123466789",
+    )

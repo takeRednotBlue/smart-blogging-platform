@@ -1,14 +1,11 @@
-import asyncio
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
-    AsyncAttrs,
 )
 from sqlalchemy.orm import DeclarativeBase
-import asyncio
 
 
 from src.conf.config import settings
@@ -35,6 +32,8 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
 
+
+# import asyncio
 
 # loop = asyncio.get_running_loop()
 # asyncio.run_coroutine_threadsafe(create_db_and_tables(), loop)

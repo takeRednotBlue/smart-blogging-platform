@@ -40,3 +40,7 @@ class TokenModel(BaseModel):
 
 class RequestEmail(BaseModel):
     email: EmailStr
+
+
+class RoleRequest(BaseModel):
+    role: Roles

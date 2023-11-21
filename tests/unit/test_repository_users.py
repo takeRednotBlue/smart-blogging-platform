@@ -1,9 +1,15 @@
 import pytest
 from sqlalchemy import select
 
+from src.schemas.users import RoleRequest
 from src.database.models.users import User
-from src.repository.users import (confirmed_email, create_user,
-                                  get_user_by_email, update_token)
+from src.repository.users import (
+    assign_role_to_user,
+    confirmed_email,
+    create_user,
+    get_user_by_email,
+    update_token,
+)
 
 
 @pytest.mark.asyncio
@@ -33,7 +39,9 @@ class TestRepositoryUsers:
     async def test_update_token(self, user_model, session):
         test_token = "test"
         user = (
-            await session.execute(select(User).where(User.email == user_model.email))
+            await session.execute(
+                select(User).where(User.email == user_model.email)
+            )
         ).scalar_one_or_none()
         await update_token(user, test_token, session)
         await session.refresh(user)
@@ -41,8 +49,26 @@ class TestRepositoryUsers:
 
     async def test_confirmed_email(self, user_model, session):
         user = (
-            await session.execute(select(User).where(User.email == user_model.email))
+            await session.execute(
+                select(User).where(User.email == user_model.email)
+            )
         ).scalar_one_or_none()
         await confirmed_email(user.email, session)
         await session.refresh(user)
         assert user.confirmed
+
+    async def test_assign_role_to_user(self, user_model, session):
+        user = (
+            await session.execute(
+                select(User).where(User.email == user_model.email)
+            )
+        ).scalar_one_or_none()
+        body = RoleRequest(role="admin")
+        result = await assign_role_to_user(user.id, body, session)
+        await session.refresh(user)
+        assert user.roles.value == "admin" == result.value
+
+    async def test_assign_role_to_wrong_user(self, session):
+        body = RoleRequest(role="admin")
+        result = await assign_role_to_user(999, body, session)
+        assert result is None

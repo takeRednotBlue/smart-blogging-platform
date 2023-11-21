@@ -17,5 +17,5 @@ class ProfileResponse(Profile):
     number_of_posts: int
 
 
-class ProfileInfoResponse(Profile):
+class ProfileInfoResponse(ProfileResponse):
     roles: Roles

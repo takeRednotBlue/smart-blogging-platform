@@ -1,7 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models.users import Post, User
+from src.database.models.users import User
+from src.database.models.posts import Post
 
 
 async def get_profile(username: str, db: AsyncSession):
@@ -44,17 +45,24 @@ async def get_profile_info(current_user: User, db: AsyncSession):
     result = await db.execute(query)
     user = result.scalars().first()
     if user:
+        query = select(Post).where(Post.user_id == user.id)
+        result = await db.execute(query)
+        number_of_posts = len(result.scalars().all())
         result = {
             "username": user.username,
             "email": user.email,
+            "created_at": user.created_at,
             "description": user.description,
-            "roles": user.roles,
+            "number_of_posts": number_of_posts,
+            "roles": user.roles.value,
         }
         return result
     return None
 
 
-async def update_profile_info(body: User, current_user: User, db: AsyncSession):
+async def update_profile_info(
+    body: User, current_user: User, db: AsyncSession
+):
     """Updates the profile information of a user.
 
     :param body: The updated user information.

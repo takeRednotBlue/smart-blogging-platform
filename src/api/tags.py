@@ -1,32 +1,37 @@
-from typing import Union, List, Annotated
+from typing import Annotated, List
 
-from fastapi import Path, APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_async_db
-from src.repository import tags as repository_tags
 from src.database.models.tags import Tag
-from src.database.models.users import User
+from src.database.models.users import Roles, User
+from src.repository import tags as repository_tags
 from src.schemas.tags import TagModel, TagResponse
 from src.services.auth import auth_service
-
+from src.services.role_checker import RoleChecker
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 
+# Dependencies
 RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
 AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
 AuthCurrentUser = Annotated[User, Depends(auth_service.get_current_user)]
+
+# Allowed roles
+allowed_delete_tags = RoleChecker([Roles.admin, Roles.moderator])
+allowed_update_tags = RoleChecker([Roles.admin, Roles.moderator])
 
 
 @router.get(
     "/",
     response_model=List[TagResponse],
-    dependencies=[Depends(RateLimiter(times=5, seconds=60))],
+    dependencies=[RequestLimiter],
 )
 async def read_tags(
     db: AsyncDBSession,
-    current_user: User = Depends(auth_service.get_current_user),
+    current_user: AuthCurrentUser,
 ) -> List[TagResponse]:
     """
     ### Description
@@ -50,12 +55,12 @@ async def read_tags(
     "/",
     response_model=TagResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(RateLimiter(times=5, seconds=60))],
+    dependencies=[RequestLimiter],
 )
 async def create_tag(
     body: TagModel,
     db: AsyncDBSession,
-    current_user: User = Depends(auth_service.get_current_user),
+    current_user: AuthCurrentUser,
 ) -> Tag:
     """
     ### Description
@@ -86,12 +91,12 @@ async def create_tag(
 @router.get(
     "/{tagname}",
     response_model=TagResponse,
-    dependencies=[Depends(RateLimiter(times=5, seconds=60))],
+    dependencies=[RequestLimiter],
 )
 async def read_tag(
     db: AsyncDBSession,
+    current_user: AuthCurrentUser,
     tagname: str = Path(description="The name of the tag to get"),
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> Tag:
     """
     ### Description
@@ -123,13 +128,13 @@ async def read_tag(
 @router.put(
     "/{tagname}",
     response_model=TagResponse,
-    dependencies=[Depends(RateLimiter(times=5, seconds=60))],
+    dependencies=[RequestLimiter, Depends(allowed_update_tags)],
 )
 async def update_tag(
     body: TagModel,
     db: AsyncDBSession,
+    current_user: AuthCurrentUser,
     tagname: str = Path(description="The name of the tag to put"),
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> Tag:
     """
     ### Description
@@ -162,12 +167,15 @@ async def update_tag(
 @router.delete(
     "/{tagname}",
     response_model=TagResponse,
-    dependencies=[Depends(RateLimiter(times=5, seconds=60))],
+    dependencies=[
+        RequestLimiter,
+        Depends(allowed_delete_tags),
+    ],
 )
 async def remove_tag(
     db: AsyncDBSession,
+    current_user: AuthCurrentUser,
     tagname: str = Path(description="The name of the tag to delete"),
-    current_user: User = Depends(auth_service.get_current_user),
 ) -> Tag:
     """
     ### Description
@@ -185,7 +193,7 @@ async def remove_tag(
     ### Returns
     - `Tag`: The deleted tag.
 
-     ### Raises
+    ### Raises
     - `Exeption with 404 HTTP code`: If the tag is not found.
     - `Exeption with 422 HTTP code`: If there is an error deleting the tag.
 

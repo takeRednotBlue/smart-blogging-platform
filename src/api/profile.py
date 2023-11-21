@@ -12,13 +12,17 @@ from src.schemas.users import UserUpdate
 from src.services.auth import auth_service
 
 router = APIRouter(prefix="/profile", tags=["profile"])
+
+# Dependencies
+RequestLimiter = Depends(RateLimiter(times=10, seconds=60))
+AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
+AuthCurrentUser = Annotated[User, Depends(auth_service.get_current_user)]
+
 async_db = Annotated[AsyncSession, Depends(get_async_db)]
 
 
 @router.get("/", response_model=ProfileInfoResponse)
-async def get_profile_info(
-    db: async_db, current_user: User = Depends(auth_service.get_current_user)
-):
+async def get_profile_info(db: AsyncDBSession, current_user: AuthCurrentUser):
     """# Get Profile Info
 
     ### Description
@@ -50,12 +54,12 @@ async def get_profile_info(
 @router.put(
     "/",
     response_model=Profile,
-    dependencies=[Depends(RateLimiter(times=3, seconds=60))],
+    dependencies=[RequestLimiter],
 )
 async def update_profile_info(
     body: UserUpdate,
-    db: async_db,
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncDBSession,
+    current_user: AuthCurrentUser,
 ):
     """# Update Profile Info
 
@@ -87,7 +91,7 @@ async def update_profile_info(
 
 
 @router.get("/{username}", response_model=ProfileResponse)
-async def get_profile(db: async_db, username: str):
+async def get_profile(db: AsyncDBSession, username: str):
     """# Get Profile
 
     ### Description

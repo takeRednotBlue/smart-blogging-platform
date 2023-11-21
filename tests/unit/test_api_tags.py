@@ -56,7 +56,22 @@ async def test_get_tags(client, token):
 
 
 @pytest.mark.asyncio
-async def test_update_tag(client, token):
+async def test_update_tag(client, moderator_token):
+    with patch.object(auth_service, "r") as r_mock:
+        r_mock.get.return_value = None
+        response = await client.put(
+            "/api/v1/tags/test_tag",
+            json={"name": "new_test_tag"},
+            headers={"Authorization": f"Bearer {moderator_token}"},
+        )
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert data["name"] == "new_test_tag"
+        assert "id" in data
+
+
+@pytest.mark.asyncio
+async def test_update_tag_wrong_role(client, token):
     with patch.object(auth_service, "r") as r_mock:
         r_mock.get.return_value = None
         response = await client.put(
@@ -64,20 +79,18 @@ async def test_update_tag(client, token):
             json={"name": "new_test_tag"},
             headers={"Authorization": f"Bearer {token}"},
         )
-        assert response.status_code == 200, response.text
-        data = response.json()
-        assert data["name"] == "new_test_tag"
-        assert "id" in data
+        assert response.status_code == 403, response.text
+        assert response.json()["detail"] == "Operation not permitted"
 
 
 @pytest.mark.asyncio
-async def test_update_tag_not_found(client, token):
+async def test_update_tag_not_found(client, moderator_token):
     with patch.object(auth_service, "r") as r_mock:
         r_mock.get.return_value = None
         response = await client.put(
             "/api/v1/tags/non_existing_tag",
             json={"name": "new_test_tag"},
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {moderator_token}"},
         )
         assert response.status_code == 404, response.text
         data = response.json()
@@ -85,12 +98,12 @@ async def test_update_tag_not_found(client, token):
 
 
 @pytest.mark.asyncio
-async def test_delete_tag(client, token):
+async def test_delete_tag(client, moderator_token):
     with patch.object(auth_service, "r") as r_mock:
         r_mock.get.return_value = None
         response = await client.delete(
             "/api/v1/tags/new_test_tag",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {moderator_token}"},
         )
         assert response.status_code == 200, response.text
         data = response.json()
@@ -99,12 +112,25 @@ async def test_delete_tag(client, token):
 
 
 @pytest.mark.asyncio
-async def test_repeat_delete_tag(client, token):
+async def test_delete_tag_wrong_role(client, token):
     with patch.object(auth_service, "r") as r_mock:
         r_mock.get.return_value = None
         response = await client.delete(
             "/api/v1/tags/new_test_tag",
             headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 403, response.text
+        data = response.json()
+        assert data["detail"] == "Operation not permitted"
+
+
+@pytest.mark.asyncio
+async def test_repeat_delete_tag(client, moderator_token):
+    with patch.object(auth_service, "r") as r_mock:
+        r_mock.get.return_value = None
+        response = await client.delete(
+            "/api/v1/tags/new_test_tag",
+            headers={"Authorization": f"Bearer {moderator_token}"},
         )
         assert response.status_code == 404, response.text
         data = response.json()

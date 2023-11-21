@@ -1,5 +1,12 @@
+import logging
+from unittest.mock import MagicMock, patch
+
 import pytest
 import pytest_asyncio
+
+from src.database.models.users import Roles
+
+logger = logging.getLogger("BaseLogger")
 
 
 @pytest.mark.asyncio
@@ -55,10 +62,10 @@ class TestComments:
         )
         assert response.status_code == 404, response.text
 
-    async def test_remove_comment(self, client, token):
+    async def test_remove_comment(self, client, moderator_token):
         response = await client.delete(
             "/api/v1/posts/1/comments/1",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {moderator_token}"},
         )
         assert response.status_code == 200, response.text
         data = response.json()
@@ -66,8 +73,20 @@ class TestComments:
         assert data["deleted_comment_id"] == 1
         assert data["deleted_comment"] == "updated comment"
 
-    async def test_remove_comment_fail(self, client):
-        response = await client.delete("/api/v1/posts/1/comments/100")
+    async def test_remove_comment_not_permitted(self, client, token):
+        response = await client.delete(
+            "/api/v1/posts/1/comments/1",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 403, response.text
+        data = response.json()
+        assert data["detail"] == "Operation not permitted"
+
+    async def test_remove_comment_fail(self, client, moderator_token):
+        response = await client.delete(
+            "/api/v1/posts/1/comments/100",
+            headers={"Authorization": f"Bearer {moderator_token}"},
+        )
         assert response.status_code == 404, response.text
         data = response.json()
         assert data["detail"] == "Comment not found"
