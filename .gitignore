@@ -178,4 +178,4 @@ test.db
 test.db 
 
 # Ignore the file named "example.txt"
-DS.Store
+.DS_Store

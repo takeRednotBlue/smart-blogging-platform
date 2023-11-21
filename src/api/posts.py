@@ -105,9 +105,7 @@ async def get_post(post_id: int, db: AsyncDBSession):
     - Retrieve a post: [GET] `/api/v1/posts/1`"""
     post = await repository_posts.get_post(post_id, db)
     if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
 
 
@@ -116,6 +114,7 @@ async def get_post(post_id: int, db: AsyncDBSession):
     response_model=PostResponse,
     tags=["posts"],
     dependencies=[RequestLimiter],
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_post(
     body: PostModel,
@@ -190,9 +189,7 @@ async def update_post(
     - Update a post: [PUT] `/api/v1/posts/{post_id}`"""
     post = await repository_posts.update_post(post_id, current_user, body, db)
     if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
 
 
@@ -233,9 +230,7 @@ async def delete_post(
     - Delete post: [DELETE] `/api/v1/posts/{post_id}`"""
     post = await repository_posts.remove_post(post_id, current_user, db)
     if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
 
 
@@ -277,9 +272,7 @@ async def create_comment(
 
     ### Example
     - Create a comment: [POST] `/api/v1/contacts/{post_id}/comments`"""
-    comment = await repository_comments.create_comment(
-        body, post_id, current_user, db
-    )
+    comment = await repository_comments.create_comment(body, post_id, current_user, db)
     if comment:
         return comment
     raise HTTPException(404, detail="Post not found")
@@ -359,9 +352,7 @@ async def update_comment(
 
     ### Example
     - Update comment: [PUT] `/api/v1/posts/{post_id}/comments/{comment_id}`"""
-    comment = await repository_comments.update_comment(
-        body, comment_id, current_user, db
-    )
+    comment = await repository_comments.update_comment(body, comment_id, current_user, db)
     if not comment:
         raise HTTPException(404, detail="Post not found")
     return comment
