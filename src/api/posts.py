@@ -64,11 +64,15 @@ async def get_all_posts(db: AsyncDBSession):
     - List[PostResponse]: A list of post objects.
 
     ### Raises
-    - None.
+    - `HTTPException(status_code=404)`: If the posts are not found.
 
     ### Example
     - Get all posts: [GET] `/api/v1/posts/`"""
     posts = await repository_posts.get_posts(db)
+    if not posts:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Posts not found"
+        )
     return posts
 
 
@@ -274,7 +278,7 @@ async def create_comment(
     - `HTTPException(404)`: If the post is not found.
 
     ### Example
-    - Create a comment: [POST] `/api/v1/contacts/{post_id}/comments`"""
+    - Create a comment: [POST] `/api/v1/posts/{post_id}/comments`"""
     comment = await repository_comments.create_comment(
         body, post_id, current_user, db
     )
@@ -396,7 +400,7 @@ async def remove_comment(
     - `HTTPException 404`: Raised if the comment is not found.
 
     ### Example
-    - Remove a comment: [DELETE] `/api/v1/contacts/{post_id}/comments/{comment_id}`
+    - Remove a comment: [DELETE] `/api/v1/posts/{post_id}/comments/{comment_id}`
     """
     deleted_comment = await repository_comments.remove_comment(comment_id, db)
     if deleted_comment:
@@ -446,7 +450,7 @@ async def read_rating_of_post(
     - `HTTPException(status_code=404)`: If the post is not found.
 
     ### Example
-    - Retrieve rating of a post: [GET] `/post/{post_id}/rating`"""
+    - Retrieve rating of a post: [GET] `api/v1/post/{post_id}/rating`"""
     post = await repository_ratings.get_post_by_id(db, post_id)
     if not post:
         raise HTTPException(
@@ -486,7 +490,7 @@ async def read_ratings_of_post(
     - `HTTPException(status_code=status.HTTP_404_NOT_FOUND)`: If the post is not found.
 
     ### Example
-    - Retrieve ratings of a post: [GET] `/post/{post_id}/ratings`"""
+    - Retrieve ratings of a post: [GET] `api/v1/post/{post_id}/ratings`"""
     post = await repository_ratings.get_post_by_id(db, post_id)
     if not post:
         raise HTTPException(
@@ -530,7 +534,7 @@ async def delete_rating(
     - `HTTPException(status_code=404)`: If the post or rating is not found.
 
     ### Example
-    - Delete rating: [DELETE] `/post/{post_id}/ratings/{rating_id}`"""
+    - Delete rating: [DELETE] `api/v1/post/{post_id}/ratings/{rating_id}`"""
     post = await repository_ratings.get_post_by_id(db, post_id)
     if not post:
         raise HTTPException(
@@ -584,7 +588,7 @@ async def add_rating_for_post(
     - `HTTPException(status_code=status.HTTP_400_BAD_REQUEST)`: If the user is the author of the post, or if the user has already rated the post.
 
     ### Example
-    - Add rating for post: [POST] `/post/{post_id}/ratings`"""
+    - Add rating for post: [POST] `api/v1/post/{post_id}/ratings`"""
     post = await repository_ratings.get_post_by_id(db, post_id)
     if not post:
         raise HTTPException(

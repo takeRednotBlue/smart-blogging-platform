@@ -171,4 +171,3 @@ test.db
 
 # Ignore the file named "example.txt"
 .DS_Store
-migrations

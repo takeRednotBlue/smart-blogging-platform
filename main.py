@@ -3,6 +3,7 @@ from logging.config import dictConfig
 import redis.asyncio as redis
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 
 from src.api.router import router
@@ -14,6 +15,18 @@ dictConfig(LogConfig().model_dump())
 app = FastAPI()
 
 app.include_router(router, prefix="/api")
+
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
