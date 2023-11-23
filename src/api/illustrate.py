@@ -19,10 +19,10 @@ generate_picture_router = APIRouter(
 )
 
 
-@generate_picture_router(
+@generate_picture_router.get(
     "/",
     name="get_illustration",
-    dependencies=[RequestLimiter, AuthCurrentUser], # actually later we'll to pass user id as an input to the function I think
+    dependencies=[RequestLimiter], # actually later we'll to pass user id as an input to the function I think
 )
 async def illustrate(
     current_user: AuthCurrentUser,
