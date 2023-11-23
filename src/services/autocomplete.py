@@ -19,3 +19,14 @@ def exmple_list_autocoplete(query: str) -> list:
     :rtype: list"""
     autocomplete_values = ["apple", "banana", "cherry", "date", "fig", "grape"]
     return list_suggestions(query, autocomplete_values)
+
+# def tags_list_autocoplete(session:,query: str) -> list:
+#     """Returns a list of autocomplete suggestions of some fruits based on the given query.
+
+#     :param query: The query string to search for autocomplete suggestions.
+#     :type query: str
+#     :return: A list of autocomplete fruit suggestions.
+#     :rtype: list"""
+#     autoco
+#     # autocomplete_values = ["apple", "banana", "cherry", "date", "fig", "grape"]
+#     return list_suggestions(query, autocomplete_values)
