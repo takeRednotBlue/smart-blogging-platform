@@ -11,7 +11,7 @@ RequestLimiter = Depends(RateLimiter(times=60, seconds=60))
 
 autocomplete_router = APIRouter(
     prefix="/autocomplete",
-    tags=["authocomplete"],
+    tags=["autocomplete"],
     dependencies=[AuthRequired],
 )
 
