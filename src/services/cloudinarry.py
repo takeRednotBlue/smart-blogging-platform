@@ -4,7 +4,6 @@
 import hashlib
 import time
 import os
-import asyncio
 import aiohttp
 
 from dotenv import load_dotenv
@@ -79,5 +78,5 @@ async def upload_image_to_cloudinary(user_id, image_url, image_name, unique=True
         async with session.post(endpoint, data=params) as response:
             result = await response.json()
             if result.get("secure_url"):
-                return result
+                return result.get("secure_url")
             raise ConnectionError("Cloudinary error!")
