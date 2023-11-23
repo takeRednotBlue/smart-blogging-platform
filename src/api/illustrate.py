@@ -22,7 +22,9 @@ generate_picture_router = APIRouter(
 @generate_picture_router.get(
     "/",
     name="get_illustration",
-    dependencies=[RequestLimiter], # actually later we'll to pass user id as an input to the function I think
+    dependencies=[
+        RequestLimiter
+    ],  # actually later we'll to pass user id as an input to the function I think
 )
 async def illustrate(
     current_user: AuthCurrentUser,
@@ -57,8 +59,12 @@ async def illustrate(
     temporary_url = await aget_picture_url(query_param)  # this url lives for 1 hour
     image_name = str(uuid.uuid4())
     illustration = await upload_image_to_cloudinary(
-        current_user.id, temporary_url, image_name, unique=False # it's definitely unique
+        current_user.id,
+        temporary_url,
+        image_name,
+        unique=False,  # it's definitely unique
     )
     return {"illustration_id": image_name, "illustration": illustration}
+
 
 # need to implement cloudinary removal
