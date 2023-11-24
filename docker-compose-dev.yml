@@ -37,7 +37,7 @@ services:
       - redis
       - db
     command: >
-      sh -c "chmod +x /app/scripts/first_launch.sh && /app/scripts/first_launch.sh \
-      && gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+      sh -c "gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+
     volumes:
       - ./alembic/versions:/app/alembic/versions

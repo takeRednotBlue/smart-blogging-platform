@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models.posts import Post
 from src.database.models.users import User
 
+from src.conf.config import settings
+
 
 async def get_profile(username: str, db: AsyncSession):
     """Retrieves the profile information of a user from the database.
@@ -21,12 +23,15 @@ async def get_profile(username: str, db: AsyncSession):
         query = select(Post).where(Post.user_id == user.id)
         result = await db.execute(query)
         number_of_posts = len(result.scalars().all())
+        if not user.avatar:
+            user.round_avatar = settings.default_round_avatar
         result = {
             "username": user.username,
             "email": user.email,
             "created_at": user.created_at,
             "description": user.description,
             "number_of_posts": number_of_posts,
+            "round_avatar": user.round_avatar,
         }
         return result
     return None
@@ -48,6 +53,9 @@ async def get_profile_info(current_user: User, db: AsyncSession):
         query = select(Post).where(Post.user_id == user.id)
         result = await db.execute(query)
         number_of_posts = len(result.scalars().all())
+        if not user.avatar:
+            user.avatar = settings.default_avatar
+            user.round_avatar = settings.default_round_avatar
         result = {
             "username": user.username,
             "email": user.email,
@@ -55,14 +63,14 @@ async def get_profile_info(current_user: User, db: AsyncSession):
             "description": user.description,
             "number_of_posts": number_of_posts,
             "roles": user.roles.value,
+            "avatar": user.avatar,
+            "round_avatar": user.round_avatar,
         }
         return result
     return None
 
 
-async def update_profile_info(
-    body: User, current_user: User, db: AsyncSession
-):
+async def update_profile_info(body: User, current_user: User, db: AsyncSession):
     """Updates the profile information of a user.
 
     :param body: The updated user information.
@@ -85,3 +93,17 @@ async def update_profile_info(
         await db.refresh(user)
         return user
     return None
+
+async def update_avatar(url: str, round_url: str, user: User, db: AsyncSession) -> User:
+    """
+    Updates avatar of the user.
+
+    :param url: cloudinary url
+    :param round_url: cloudinary url
+    :param current_user: User.
+    :return: The updated User object.
+    """
+    user.avatar = url
+    user.round_avatar = round_url
+    await db.commit()
+    return user

@@ -10,11 +10,15 @@ class Profile(BaseModel):
     username: str
     email: str
     description: Optional[str] = None
+    avatar: Optional[str] = None
+    round_avatar: Optional[str] = None
 
 
 class ProfileResponse(Profile):
     created_at: datetime
     number_of_posts: int
+    avatar: str
+    round_avatar: str
 
 
 class ProfileInfoResponse(ProfileResponse):
