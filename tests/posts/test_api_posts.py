@@ -38,9 +38,13 @@ class TestPosts:
         assert isinstance(data, List)
         return data
 
-    async def test_read_posts_not_found(self, client):
+    async def test_read_post_not_found(self, client):
         response = await client.get("/api/v1/posts/100")
         assert response.status_code == 404
+
+    async def test_read_posts_not_found(self, client):
+        response = await client.get("/api/v1/posts/all")
+        assert response.status_code == 422
 
     async def test_read_post(self, client):
         response = await client.get("/api/v1/posts/1")

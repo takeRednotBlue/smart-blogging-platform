@@ -7,6 +7,7 @@ from src.repository.posts import (
     get_post,
     update_post,
     remove_post,
+    get_or_create_tag,
 )
 from src.schemas.posts import PostCreate, PostUpdate
 from sqlalchemy import select
@@ -32,6 +33,14 @@ class TestPostsRepository:
         assert post.title == "test5"
         assert post.user_id == db_user.id
         assert len(post.tags) == 2
+
+    async def test_get_or_create_tag(self, session):
+        tag_name = "tag1"
+        tag = await get_or_create_tag(tag_name, session)
+        assert tag.name == tag_name  # Проверяем, что имя совпадает
+        assert tag.id is not None
+        existing_tag = await get_or_create_tag(tag_name, session)
+        assert existing_tag.id == tag.id
 
     async def test_get_posts(self, session):
         posts = await get_posts(session)
