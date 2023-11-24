@@ -77,3 +77,46 @@ async def upload_image_to_cloudinary(user_id, image_url, image_name, unique=True
             if result.get("secure_url"):
                 return result.get("secure_url")
             raise ConnectionError("Cloudinary error!")
+
+
+def json_to_url_convention(input: dict) -> str:
+    """needed for the transformations requests"""
+    result = []
+    for k, v in input.items():
+        result.append(f"{k[0]}_{v}")
+    return ",".join(result)
+
+
+async def round_profile_pic(user_id, image_url):
+    # error_handling https://cloudinary.com/documentation/upload_images
+    """overrides the previous profile pic"""
+
+    endpoint = f"https://api.cloudinary.com/v1_1/{cloud_name}/image/upload"
+    params = {"file": image_url, "api_key": api_key, "timestamp": int(time.time())}
+    params["public_id"] = "pfp"
+    params["folder"] = users_image_cloudinary_path(user_id)
+    eager = [
+        {"gravity": "face", "height": 400, "width": 400, "crop": "crop"},
+        {"radius": "max"},
+        {"fetch_format": "auto"},
+    ]
+
+    # eager_async = True,
+    # eager_notification_url = "https://mysite.example.com/eager_endpoint",
+    # notification_url = "https://mysite.example.com/upload_endpoint"
+
+    params["eager"] = ",".join(json_to_url_convention(e) for e in eager)
+    params["signature"] = generate_cloudinary_signature(params, api_secret)
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(endpoint, data=params) as response:
+            result = await response.json()
+            before = result.get("secure_url")
+            if not before:
+                raise ConnectionError("Cloudinary error!")
+            if not result.get("eager"):
+                raise ConnectionError("Cloudinary transformation error!")
+            after = result.get("eager", [{}])[0].get("secure_url")
+            if not after:
+                raise ConnectionError("Cloudinary transformation error!")
+            return {"original": before, "round": after}

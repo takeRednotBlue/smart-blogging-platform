@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.conf.config import settings
 import src.repository.profile as repository_profile
 from src.database.db import get_async_db
 from src.database.models.users import User
 from src.schemas.profiles import Profile, ProfileInfoResponse, ProfileResponse
-from src.schemas.users import UserUpdate
+from src.schemas.users import UserUpdate, UserAvatarUpdate
 from src.services.auth import auth_service
+from src.services.cloudinarry import round_profile_pic
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
@@ -87,6 +89,46 @@ async def update_profile_info(
 
     return user
 
+@router.put(
+    "/avatar",
+    response_model=Profile,
+    dependencies=[RequestLimiter],
+)
+async def update_avatar(
+    body: UserAvatarUpdate,
+    db: AsyncDBSession,
+    current_user: AuthCurrentUser,
+):
+    """# Update Profile Info
+
+    ### Description
+    This endpoint is used to update the profile information of a user.
+
+    ### Authorization
+    - Access to this endpoint requires users to be authenticated.
+    - Allowed roles: "Admin", "Moderator", "User".
+    - The access JWT token should be passed in the request header for authentication.
+
+    ### Request limit
+    - Maximum 3 requests per 60 seconds.
+
+    ### Query Parameters
+    - `body` (**UserAvatarUpdate**, required): The updated profile information of the user.
+
+    ### Returns
+    - `User`: The updated user profile information.
+
+    ### Raises
+    - `HTTPException(status_code=status.HTTP_404_NOT_FOUND)`: If the user is not found.
+
+    ### Example
+    - Update profile info: [PUT] `api/v1/profile/`"""
+    draft=body.avatar
+    result = await round_profile_pic(current_user.id, draft)
+    url, round_url = result['original'], result['round']
+    user = await repository_profile.update_avatar(url, round_url, current_user, db)
+
+    return user
 
 @router.get("/{username}", response_model=ProfileResponse)
 async def get_profile(db: AsyncDBSession, username: str):
