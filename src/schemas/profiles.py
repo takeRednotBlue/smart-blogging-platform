@@ -17,8 +17,6 @@ class Profile(BaseModel):
 class ProfileResponse(Profile):
     created_at: datetime
     number_of_posts: int
-    avatar: str
-    round_avatar: str
 
 
 class ProfileInfoResponse(ProfileResponse):

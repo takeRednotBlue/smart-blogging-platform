@@ -3,6 +3,7 @@
 
 import hashlib
 import time
+
 import aiohttp
 
 from src.conf.config import settings
@@ -22,7 +23,9 @@ def generate_cloudinary_signature(params, api_secret):
     Needed for the API call.
     See https://cloudinary.com/documentation/upload_images#manual_signature_generation
     """
-    params_to_sign = {k: v for k, v in params.items() if k not in ["file", "api_key"]}
+    params_to_sign = {
+        k: v for k, v in params.items() if k not in ["file", "api_key"]
+    }
     # Sort parameters alphabetically by key
     sorted_params = sorted(params_to_sign.items())
 
@@ -54,14 +57,20 @@ async def image_exists_on_cloudinary(user_id, image_name):
             return False
 
 
-async def upload_image_to_cloudinary(user_id, image_url, image_name, unique=True):
+async def upload_image_to_cloudinary(
+    user_id, image_url, image_name, unique=True
+):
     """Uploads image to cloudinary. If unique set to False, overwrites the previous image.
     See https://cloudinary.com/documentation/image_upload_api_reference"""
     # error_handling https://cloudinary.com/documentation/upload_images
 
     endpoint = f"https://api.cloudinary.com/v1_1/{cloud_name}/image/upload"
 
-    params = {"file": image_url, "api_key": api_key, "timestamp": int(time.time())}
+    params = {
+        "file": image_url,
+        "api_key": api_key,
+        "timestamp": int(time.time()),
+    }
 
     params["public_id"] = image_name
     params["folder"] = users_image_cloudinary_path(user_id)
@@ -92,7 +101,11 @@ async def round_profile_pic(user_id, image_url):
     """overrides the previous profile pic"""
 
     endpoint = f"https://api.cloudinary.com/v1_1/{cloud_name}/image/upload"
-    params = {"file": image_url, "api_key": api_key, "timestamp": int(time.time())}
+    params = {
+        "file": image_url,
+        "api_key": api_key,
+        "timestamp": int(time.time()),
+    }
     params["public_id"] = "pfp"
     params["folder"] = users_image_cloudinary_path(user_id)
     eager = [
