@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     superuser_username: str
 
     default_avatar: str
-    default_round_avatar:str
+    default_round_avatar: str
 
     model_config = ConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

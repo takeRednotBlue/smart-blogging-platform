@@ -1,5 +1,8 @@
 import pytest
 import pytest_asyncio
+from typing import List
+
+from fastapi import status
 
 
 @pytest.mark.asyncio
@@ -32,6 +35,16 @@ class TestPosts:
         assert response.status_code == 200, response.text
         data = response.json()
         assert len(data) > 0
+        assert isinstance(data, List)
+        return data
+
+    async def test_read_post_not_found(self, client):
+        response = await client.get("/api/v1/posts/100")
+        assert response.status_code == 404
+
+    async def test_read_posts_not_found(self, client):
+        response = await client.get("/api/v1/posts/all")
+        assert response.status_code == 422
 
     async def test_read_post(self, client):
         response = await client.get("/api/v1/posts/1")
