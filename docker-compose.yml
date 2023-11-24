@@ -25,6 +25,6 @@ services:
     command: >
       sh -c "chmod +x /app/scripts/start_script.sh && /app/scripts/start_script.sh"
     volumes:
-      - .alembic/versions:/app/migrations
+      - ~/migrations/:/app/alembic/versions
     depends_on:
       - redis
