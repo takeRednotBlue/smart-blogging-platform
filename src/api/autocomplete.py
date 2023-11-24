@@ -1,17 +1,23 @@
+from typing import Annotated
 from easy_open_ai import aautocomplete_text
 from fastapi import APIRouter, Depends, Query
 from fastapi_limiter.depends import RateLimiter
 
 from src.services.auth import auth_service
-from src.services.autocomplete import exmple_list_autocoplete
+from src.services.autocomplete import exmple_list_autocoplete, list_suggestions
+from src.database.db import get_async_db
+from src.repository.tags import get_tags
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # Dependencies
 AuthRequired = Depends(auth_service.get_current_user)
 RequestLimiter = Depends(RateLimiter(times=60, seconds=60))
+AsyncDBSession = Annotated[AsyncSession, Depends(get_async_db)]
 
 autocomplete_router = APIRouter(
     prefix="/autocomplete",
-    tags=["authocomplete"],
+    tags=["autocomplete"],
     dependencies=[AuthRequired],
 )
 
@@ -53,16 +59,15 @@ async def autocomplete_text(
     suggestion = await aautocomplete_text(query_param)
     return {"suggestion": suggestion}
 
-
 @autocomplete_router.get(
-    "/fruits",
-    name="fruits_list_autocomplete",
+    "/tags",
+    name="tags_list_autocomplete",
     dependencies=[RequestLimiter, AuthRequired],
 )
-async def autocomplete_fruits(
-    query_param: str = Query(..., description="Autocomplete query")
+async def autocomplete_tags(
+    db: AsyncDBSession, query_param: str = Query(..., description="Autocomplete query")
 ):
-    """# Autocomplete Fruits
+    """# Autocomplete Tags
 
     ### Description
     This endpoint provides a list of autocomplete suggestions for a given query parameter.
@@ -86,6 +91,8 @@ async def autocomplete_fruits(
     - `HTTPException 429`: If too many requests.
 
     ### Example
-    - Autocomplete Text: [GET] `/fruits?query_param=appl`"""
-    suggestions = exmple_list_autocoplete(query_param)
+    - Autocomplete Text: [GET] `/tags?query_param=tag`"""
+    all_tag_objects = await get_tags(db)
+    all_tags = [tag.name for tag in all_tag_objects]
+    suggestions = list_suggestions(query_param, all_tags)
     return {"suggestions": suggestions}

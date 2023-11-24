@@ -25,11 +25,16 @@ class Settings(BaseSettings):
 
     openai_api_key: str
 
-    # superuser_email: str
-    # superuser_password: str
-    # superuser_username: str
+    superuser_email: str
+    superuser_password: str
+    superuser_username: str
 
-    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    default_avatar: str
+    default_round_avatar: str
+
+    model_config = ConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
 
 settings = Settings()

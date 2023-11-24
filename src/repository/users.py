@@ -35,9 +35,7 @@ async def create_user(body: UserModel, db: AsyncSession) -> User:
     return new_user
 
 
-async def update_token(
-    user: User, refresh_token: str, db: AsyncSession
-) -> None:
+async def update_token(user: User, refresh_token: str, db: AsyncSession) -> None:
     """Updates the refresh token of a user in the database.
 
     :param user: The user object.

@@ -1,5 +1,8 @@
+from fastapi import HTTPException
 import pytest
 from passlib.hash import bcrypt
+
+from src.api.profile import get_profile
 
 hashed_password = bcrypt.hash("password")
 
@@ -37,3 +40,10 @@ class TestAPIProfile:
         assert data["username"] == "string"
         assert data["email"] == db_user.email
         assert data["description"] == "string"
+
+    async def test_get_profile_user_not_found(self, session):
+        with pytest.raises(HTTPException) as excinfo:
+            await get_profile(session, "non_existing_user")
+        assert excinfo.value.status_code == 404
+        assert excinfo.value.detail == "User not found."
+        

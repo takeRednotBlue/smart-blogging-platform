@@ -23,3 +23,5 @@ class User(Base):
     refresh_token = Column(String(255), nullable=True)
     confirmed = Column(Boolean, default=False)
     description = Column(String(500), nullable=True)
+    avatar = Column(String, nullable=True)
+    round_avatar = Column(String, nullable=True)

@@ -17,6 +17,7 @@ from fastapi.security import (
 from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.conf.config import settings
 from src.database.db import get_async_db
 from src.repository import users as repository_users
 from src.schemas.users import RequestEmail, TokenModel, UserModel, UserResponse

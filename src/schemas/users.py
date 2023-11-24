@@ -18,6 +18,8 @@ class UserDb(BaseModel):
     roles: Roles
     email: str
     created_at: datetime
+    avatar: str | None
+    round_avatar: str | None
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
 
@@ -25,6 +27,10 @@ class UserDb(BaseModel):
 class UserUpdate(BaseModel):
     username: Optional[constr(min_length=5, max_length=20)] = None
     description: Optional[constr(max_length=500)] = None
+
+
+class UserAvatarUpdate(BaseModel):
+    avatar: str
 
 
 class UserResponse(BaseModel):

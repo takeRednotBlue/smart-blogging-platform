@@ -10,6 +10,8 @@ class Profile(BaseModel):
     username: str
     email: str
     description: Optional[str] = None
+    avatar: Optional[str] = None
+    round_avatar: Optional[str] = None
 
 
 class ProfileResponse(Profile):
